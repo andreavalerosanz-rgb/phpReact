@@ -25,6 +25,6 @@ export const useTranslation = () => {
     changeLanguage,
     getLanguage,
     getAvailableLanguages,
-    updateCount // Incluir en el return para forzar re-renders
+    updateCount
   };
 };

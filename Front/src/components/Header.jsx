@@ -46,7 +46,6 @@ const Header = () => {
           </ul>
           
           <div className="d-flex gap-2 align-items-center">
-            {/* Selector de idioma */}
             <select 
               className="form-select form-select-sm me-2" 
               style={{ width: 'auto' }}
