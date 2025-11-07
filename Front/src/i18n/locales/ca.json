@@ -1,0 +1,53 @@
+{
+  "common": {
+    "brand": "Isla Transfers",
+    "login": "Iniciar Sessió",
+    "register": "Registrar-se",
+    "home": "Inici",
+    "services": "Serveis",
+    "prices": "Preus",
+    "contact": "Contacte"
+  },
+  "hero": {
+    "title": "Trasllats Aeroport-Hotel",
+    "subtitle": "Sense Complicacions",
+    "description": "Reserva el teu transfer de manera ràpida i segura. Arribem a temps perquè tu només et preocupis de gaudir del teu viatge a l'illa.",
+    "reserveNow": "Reserva Ara",
+    "learnMore": "Coneix Més"
+  },
+  "features": {
+    "title": "Per Què Triar-nos?",
+    "subtitle": "La millor experiència en trasllats de l'illa",
+    "punctuality": "Puntualitat Garantida",
+    "punctualityDesc": "Arribem sempre a temps perquè no perdis el teu vol",
+    "prices": "Preus Fixos",
+    "pricesDesc": "Sense sorpreses. Saps exactament el que pagues des del principi",
+    "vehicles": "Vehicles Moderns",
+    "vehiclesDesc": "Flota actualitzada amb màxim confort i seguretat",
+    "booking": "Reserva Online",
+    "bookingDesc": "Gestiona les teves reserves 24/7 des de qualsevol dispositiu"
+  },
+  "howItWorks": {
+    "title": "Com Funciona",
+    "subtitle": "Reserva el teu transfer en 4 simples passos",
+    "step1": "Registra't",
+    "step1Desc": "Crea el teu compte en menys de 2 minuts",
+    "step2": "Reserva",
+    "step2Desc": "Tria el teu tipus de trasllat i completa les dades",
+    "step3": "Confirma",
+    "step3Desc": "Rep el teu localitzador per email",
+    "step4": "Gaudeix",
+    "step4Desc": "Relaxa't mentre nosaltres ens ocupem de la resta"
+  },
+  "cta": {
+    "title": "A punt per al teu proper viatge?",
+    "description": "Reserva ara i viatja amb la tranquil·litat de tenir el teu transfer garantit",
+    "button": "Començar Ara"
+  },
+  "footer": {
+    "description": "La teva solució confiable per a trasllats aeroport-hotel a l'illa.",
+    "quickLinks": "Enllaços Ràpids",
+    "contact": "Contacte",
+    "rights": "&copy; 2024 Isla Transfers. Tots els drets reservats."
+  }
+}

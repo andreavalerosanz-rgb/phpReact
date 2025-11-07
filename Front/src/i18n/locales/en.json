@@ -1,0 +1,53 @@
+{
+  "common": {
+    "brand": "Isla Transfers",
+    "login": "Login",
+    "register": "Register",
+    "home": "Home",
+    "services": "Services",
+    "prices": "Prices",
+    "contact": "Contact"
+  },
+  "hero": {
+    "title": "Airport-Hotel Transfers",
+    "subtitle": "Without Complications",
+    "description": "Book your transfer quickly and securely. We arrive on time so you only have to worry about enjoying your trip on the island.",
+    "reserveNow": "Book Now",
+    "learnMore": "Learn More"
+  },
+  "features": {
+    "title": "Why Choose Us?",
+    "subtitle": "The best transfer experience on the island",
+    "punctuality": "Guaranteed Punctuality",
+    "punctualityDesc": "We always arrive on time so you don't miss your flight",
+    "prices": "Fixed Prices",
+    "pricesDesc": "No surprises. You know exactly what you pay from the start",
+    "vehicles": "Modern Vehicles",
+    "vehiclesDesc": "Updated fleet with maximum comfort and safety",
+    "booking": "Online Booking",
+    "bookingDesc": "Manage your bookings 24/7 from any device"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Book your transfer in 4 simple steps",
+    "step1": "Register",
+    "step1Desc": "Create your account in less than 2 minutes",
+    "step2": "Book",
+    "step2Desc": "Choose your transfer type and complete the data",
+    "step3": "Confirm",
+    "step3Desc": "Receive your locator by email",
+    "step4": "Enjoy",
+    "step4Desc": "Relax while we take care of the rest"
+  },
+  "cta": {
+    "title": "Ready for your next trip?",
+    "description": "Book now and travel with the peace of mind of having your transfer guaranteed",
+    "button": "Get Started"
+  },
+  "footer": {
+    "description": "Your reliable solution for airport-hotel transfers on the island.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "rights": "&copy; 2024 Isla Transfers. All rights reserved."
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "common": {
+    "brand": "Isla Transfers",
+    "login": "Iniciar Sesión",
+    "register": "Registrarse",
+    "home": "Inicio",
+    "services": "Servicios",
+    "prices": "Precios",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "title": "Traslados Aeropuerto-Hotel",
+    "subtitle": "Sin Complicaciones",
+    "description": "Reserva tu transfer de manera rápida y segura. Llegamos a tiempo para que tú solo te preocupes por disfrutar de tu viaje en la isla.",
+    "reserveNow": "Reservar Ahora",
+    "learnMore": "Conocer Más"
+  },
+  "features": {
+    "title": "¿Por Qué Elegirnos?",
+    "subtitle": "La mejor experiencia en traslados de la isla",
+    "punctuality": "Puntualidad Garantizada",
+    "punctualityDesc": "Llegamos siempre a tiempo para que no pierdas tu vuelo",
+    "prices": "Precios Fijos",
+    "pricesDesc": "Sin sorpresas. Sabes exactamente lo que pagas desde el principio",
+    "vehicles": "Vehículos Modernos",
+    "vehiclesDesc": "Flota actualizada con máximo confort y seguridad",
+    "booking": "Reserva Online",
+    "bookingDesc": "Gestiona tus reservas 24/7 desde cualquier dispositivo"
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona",
+    "subtitle": "Reserva tu transfer en 4 simples pasos",
+    "step1": "Regístrate",
+    "step1Desc": "Crea tu cuenta en menos de 2 minutos",
+    "step2": "Reserva",
+    "step2Desc": "Elige tu tipo de traslado y completa los datos",
+    "step3": "Confirma",
+    "step3Desc": "Recibe tu localizador por email",
+    "step4": "Disfruta",
+    "step4Desc": "Relájate mientras nosotros nos ocupamos del resto"
+  },
+  "cta": {
+    "title": "¿Listo para tu próximo viaje?",
+    "description": "Reserva ahora y viaja con la tranquilidad de tener tu transfer garantizado",
+    "button": "Comenzar Ahora"
+  },
+  "footer": {
+    "description": "Tu solución confiable para traslados aeropuerto-hotel en la isla.",
+    "quickLinks": "Enlaces Rápidos",
+    "contact": "Contacto",
+    "rights": "&copy; 2024 Isla Transfers. Todos los derechos reservados."
+  }
+}

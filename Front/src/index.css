@@ -1,0 +1,362 @@
+:root {
+  /* Nueva paleta de colores principal */
+  --dark-slate-gray: #36453b;
+  --dim-gray: #596869;
+  --ebony: #515751;
+  --ivory: #f5f9e9;
+  --sage: #c2c1a5;
+
+  /* Colores semánticos basados en la nueva paleta */
+  --success: #4a7c59;
+  --warning: #d4a574;
+  --danger: #8b4513;
+  --info: #6b8e9c;
+  
+  /* Tipografía */
+  --font-family-base: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-xxl: 3rem;
+  
+  /* Bordes */
+  --border-radius-sm: 0.25rem;
+  --border-radius: 0.375rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-xl: 1rem;
+  
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(54, 69, 59, 0.05);
+  --shadow: 0 1px 3px rgba(54, 69, 59, 0.1), 0 1px 2px rgba(54, 69, 59, 0.06);
+  --shadow-md: 0 4px 6px rgba(54, 69, 59, 0.1), 0 2px 4px rgba(54, 69, 59, 0.06);
+  --shadow-lg: 0 10px 15px rgba(54, 69, 59, 0.1), 0 4px 6px rgba(54, 69, 59, 0.05);
+}
+
+/* Reset y estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-base);
+  line-height: 1.6;
+  color: var(--dark-slate-gray);
+}
+
+/* Utilidades de color */
+.bg-dark-slate-gray { background-color: var(--dark-slate-gray) !important; }
+.bg-dim-gray { background-color: var(--dim-gray) !important; }
+.bg-ebony { background-color: var(--ebony) !important; }
+.bg-ivory { background-color: var(--ivory) !important; }
+.bg-sage { background-color: var(--sage) !important; }
+
+.text-dark-slate-gray { color: var(--dark-slate-gray) !important; }
+.text-dim-gray { color: var(--dim-gray) !important; }
+.text-ebony { color: var(--ebony) !important; }
+.text-ivory { color: var(--ivory) !important; }
+.text-sage { color: var(--sage) !important; }
+
+.border-dark-slate-gray { border-color: var(--dark-slate-gray) !important; }
+.border-dim-gray { border-color: var(--dim-gray) !important; }
+.border-sage { border-color: var(--sage) !important; }
+
+/* Override de colores Bootstrap */
+.btn-primary {
+  background-color: var(--dark-slate-gray);
+  border-color: var(--dark-slate-gray);
+  color: var(--ivory);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #2b382f;
+  border-color: #2b382f;
+  color: var(--ivory);
+}
+
+.btn-outline-primary {
+  color: var(--dark-slate-gray);
+  border-color: var(--dark-slate-gray);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--dark-slate-gray);
+  border-color: var(--dark-slate-gray);
+  color: var(--ivory);
+}
+
+.btn-warning {
+  background-color: var(--sage);
+  border-color: var(--sage);
+  color: var(--dark-slate-gray);
+}
+
+.btn-warning:hover {
+  background-color: #b0af93;
+  border-color: #b0af93;
+  color: var(--dark-slate-gray);
+}
+
+.btn-success {
+  background-color: var(--success);
+  border-color: var(--success);
+}
+
+.btn-info {
+  background-color: var(--info);
+  border-color: var(--info);
+}
+
+.bg-primary {
+  background-color: var(--dark-slate-gray) !important;
+}
+
+.text-primary {
+  color: var(--dark-slate-gray) !important;
+}
+
+.bg-light {
+  background-color: var(--ivory) !important;
+}
+
+.bg-dark {
+  background-color: var(--dark-slate-gray) !important;
+}
+
+.text-muted {
+  color: var(--dim-gray) !important;
+}
+
+/* Navbar personalizado */
+.navbar {
+  /*background-color: var(--ivory) !important;*/
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+  color: var(--dark-slate-gray) !important;
+  font-weight: var(--font-weight-bold);
+  font-size: 1.5rem;
+}
+
+.navbar-nav .nav-link {
+  color: var(--dark-slate-gray) !important;
+  font-weight: var(--font-weight-semibold);
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: var(--sage) !important;
+}
+
+/* Hero section */
+.hero-section {
+  background: linear-gradient(135deg, var(--dark-slate-gray) 0%, var(--ebony) 100%);
+  color: var(--ivory);
+}
+
+.hero-section .text-warning {
+  color: var(--sage) !important;
+}
+
+/* Cards personalizadas */
+.card {
+  border: none;
+  box-shadow: var(--shadow);
+  transition: all 0.3s ease;
+  background-color: white;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card .feature-icon {
+  color: var(--dim-gray);
+}
+
+/* Steps section */
+.step-circle {
+  background: linear-gradient(135deg, var(--sage) 0%, var(--dark-slate-gray) 100%);
+  color: var(--ivory);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  font-size: 1.5rem;
+  margin: 0 auto var(--spacing-md);
+}
+
+/* Footer personalizado */
+footer {
+  background-color: var(--dark-slate-gray) !important;
+  color: var(--ivory);
+}
+
+footer .text-muted {
+  color: var(--sage) !important;
+}
+
+footer a {
+  color: var(--sage);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+footer a:hover {
+  color: var(--ivory);
+}
+
+/* Utilidades personalizadas */
+.min-vh-50 {
+  min-height: 50vh;
+}
+
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(54, 69, 59, 0.3);
+}
+
+.border-sage {
+  border: 2px solid var(--sage);
+}
+
+/* Badges personalizados */
+.badge.bg-primary {
+  background-color: var(--sage) !important;
+  color: var(--dark-slate-gray);
+}
+
+/* Form controls */
+.form-control:focus {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 0.2rem rgba(194, 193, 165, 0.25);
+}
+
+.form-select:focus {
+  border-color: var(--sage);
+  box-shadow: 0 0 0 0.2rem rgba(194, 193, 165, 0.25);
+}
+
+/* Alertas personalizadas */
+.alert-primary {
+  background-color: rgba(194, 193, 165, 0.2);
+  border-color: var(--sage);
+  color: var(--dark-slate-gray);
+}
+
+/* Progress bars */
+.progress {
+  background-color: var(--ivory);
+}
+
+.progress-bar {
+  background-color: var(--sage);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2rem;
+  }
+  
+  .hero-section {
+    text-align: center;
+  }
+  
+  .step-circle {
+    width: 60px;
+    height: 60px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Animaciones suaves */
+.fade-in {
+  animation: fadeIn 0.8s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mejoras de accesibilidad */
+.btn:focus,
+.nav-link:focus {
+  box-shadow: 0 0 0 3px rgba(194, 193, 165, 0.25);
+}
+
+/* Estados de hover mejorados */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Gradientes personalizados */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--dark-slate-gray) 0%, var(--ebony) 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, var(--sage) 0%, var(--ivory) 100%);
+}
+
+/* Tablas personalizadas */
+.table-hover tbody tr:hover {
+  background-color: rgba(194, 193, 165, 0.1);
+}
+
+/* List group personalizado */
+.list-group-item {
+  border-color: rgba(194, 193, 165, 0.3);
+}
+
+.list-group-item:hover {
+  background-color: rgba(194, 193, 165, 0.1);
+}
+
+/* Breadcrumb personalizado */
+.breadcrumb-item.active {
+  color: var(--dim-gray);
+}
+
+/* Pagination personalizado */
+.page-link {
+  color: var(--dark-slate-gray);
+  border-color: var(--sage);
+}
+
+.page-link:hover {
+  background-color: var(--sage);
+  border-color: var(--sage);
+  color: var(--dark-slate-gray);
+}
+
+.page-item.active .page-link {
+  background-color: var(--dark-slate-gray);
+  border-color: var(--dark-slate-gray);
+}
