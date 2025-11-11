@@ -1,0 +1,20 @@
+# Activa mod_rewrite
+RewriteEngine On
+
+# No aplicar reglas a archivos o carpetas existentes
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Enviar el resto a index.php (para rutas MVC)
+RewriteRule ^ index.php [QSA,L]
+
+# 🔧 Permite servir CSS/JS/imágenes
+<IfModule mod_headers.c>
+  <FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico|svg)$">
+    Header set Cache-Control "max-age=2592000, public"
+  </FilesMatch>
+</IfModule>
+
+# 🔧 Asegura que Apache sirva archivos estáticos
+AddType text/css .css
+AddType application/javascript .js
