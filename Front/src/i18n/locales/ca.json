@@ -49,5 +49,10 @@
     "quickLinks": "Enllaços Ràpids",
     "contact": "Contacte",
     "rights": "&copy; 2024 Isla Transfers. Tots els drets reservats."
+  },
+  "test" : {
+    "sample": "Això és una prova"
+
+
   }
 }

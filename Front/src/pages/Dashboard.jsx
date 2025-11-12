@@ -8,12 +8,14 @@ import {
   IconSettings,
   IconFileDescription,
 } from "@tabler/icons-react"
+import { useTranslation } from '../hooks/useTranslation'
+
 
 // Menús por tipo de usuario con íconos reales
 const menus = {
   admin: [
     { title: "Reservas", url: "#", icon: IconListDetails },
-    { title: "Calendario", url: "#", icon: IconChartBar },
+    { title: "Calendario", url: "/calendario", icon: IconChartBar },
     { title: "Usuarios", url: "#", icon: IconUsers },
     { title: "Configuración", url: "#", icon: IconSettings },
   ],
@@ -70,6 +72,7 @@ const dashboardContent = {
 }
 
 const Dashboard = () => {
+const { t, updateCount } = useTranslation()
   const [userType, setUserType] = useState(null)
   const [currentUser, setCurrentUser] = useState({
     name: "Usuario",
@@ -86,13 +89,14 @@ const Dashboard = () => {
   if (!userType) return null // loader opcional
 
   return (
+
     <div className="dashboard-page min-h-screen w-full flex bg-gray-50 text-gray-900 overflow-hidden">
+
       <SidebarProvider style={{ "--sidebar-width": "14rem" }}>
         {/* Sidebar dinámico */}
         <AppSidebar
           user={currentUser}
-          menuItems={menus[userType]}
-          companyName="Mi Empresa"
+          navMain={menus[userType]}
           className="bg-white border-r border-gray-200 shadow-sm"
         />
 
@@ -113,6 +117,8 @@ const Dashboard = () => {
           </main>
         </SidebarInset>
       </SidebarProvider>
+
+
     </div>
   )
 }

@@ -49,5 +49,10 @@
     "quickLinks": "Quick Links",
     "contact": "Contact",
     "rights": "&copy; 2024 Isla Transfers. All rights reserved."
+  },
+    "test" : {
+    "sample": "this is a test"
+
+
   }
 }
