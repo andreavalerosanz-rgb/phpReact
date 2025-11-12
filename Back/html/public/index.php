@@ -1,55 +1,42 @@
 <?php
+// public/index.php
+require_once __DIR__ . '/../vendor/autoload.php';
 
-use Illuminate\Contracts\Http\Kernel;
-use Illuminate\Http\Request;
+use App\Core\Router;
+use App\Core\DB;
+use App\Controllers\AuthController;
+use App\Controllers\ReservationController;
 
-define('LARAVEL_START', microtime(true));
+// Inicia sesión global
+session_start();
 
-/*
-|--------------------------------------------------------------------------
-| Check If The Application Is Under Maintenance
-|--------------------------------------------------------------------------
-|
-| If the application is in maintenance / demo mode via the "down" command
-| we will load this file so that any pre-rendered content can be shown
-| instead of starting the framework, which could cause an exception.
-|
-*/
+// Cargar configuración y conexión a la base de datos
+$config = require __DIR__ . '/../config/config.php';
+$pdo = DB::getInstance($config['db'])->pdo();
 
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
-    require $maintenance;
-}
+// Crear router
+$router = new Router();
 
-/*
-|--------------------------------------------------------------------------
-| Register The Auto Loader
-|--------------------------------------------------------------------------
-|
-| Composer provides a convenient, automatically generated class loader for
-| this application. We just need to utilize it! We'll simply require it
-| into the script here so we don't need to manually load our classes.
-|
-*/
+// Página principal
+$router->get('/', function() {
+    require __DIR__ . '/../views/home.php';
+});
 
-require __DIR__.'/../vendor/autoload.php';
+// Página "Cómo funciona"
+$router->get('/how', [SiteController::class, 'how']);
 
-/*
-|--------------------------------------------------------------------------
-| Run The Application
-|--------------------------------------------------------------------------
-|
-| Once we have the application, we can handle the incoming request using
-| the application's HTTP kernel. Then, we will send the response back
-| to this client's browser, allowing them to enjoy our application.
-|
-*/
+// Auth
+$router->get('/login', [AuthController::class, 'login']);
+$router->post('/login', [AuthController::class, 'login']);
 
-$app = require_once __DIR__.'/../bootstrap/app.php';
+$router->get('/register', [AuthController::class, 'register']);
+$router->post('/register', [AuthController::class, 'register']);
 
-$kernel = $app->make(Kernel::class);
+$router->get('/logout', [AuthController::class, 'logout']);
 
-$response = $kernel->handle(
-    $request = Request::capture()
-)->send();
+// Reservas
+$router->get('/reservations', [ReservationController::class, 'index']);
+$router->post('/reservations/create', [ReservationController::class, 'create']);
 
-$kernel->terminate($request, $response);
+// Despachar rutas PASANDO $pdo y $config a los controladores
+$router->dispatch($pdo, $config);

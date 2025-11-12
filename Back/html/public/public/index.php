@@ -26,7 +26,9 @@ $uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 $routes = [
     '' => ['App\\Controllers\\SiteController', 'home'],
     'login' => ['App\\Controllers\\AuthController', 'login'],
+    'register' => ['App\\Controllers\\AuthController', 'register'],
     'admin/reservations' => ['App\\Controllers\\AdminController', 'listReservations'],
+    'how' => ['App\\Controllers\\SiteController', 'how'], //
 ];
 
 // si la ruta existe...
