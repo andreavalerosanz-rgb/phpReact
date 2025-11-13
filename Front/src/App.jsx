@@ -5,6 +5,10 @@ import Home from './pages/Home.jsx'
 import Register from './pages/Register.jsx'
 import Calendario from './pages/Calendario.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import PerfilUsuario from './pages/PerfilUsuario.jsx'
+import MisReservas from "./pages/MisReservas"
+import NuevaReserva from "./pages/NuevaReserva"
+import DetalleReserva from "./pages/DetalleReserva"
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 function App() {
@@ -17,6 +21,12 @@ function App() {
           <Route path="/registro" element={<Register />} />
           <Route path="/calendario" element={<Calendario />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/perfil" element={<PerfilUsuario />} />
+          <Route path="/reservas" element={<MisReservas />} />
+          <Route path="/reservas/nueva" element={<NuevaReserva />} />
+          <Route path="/reservas/:id" element={<DetalleReserva />} />
+
+
         </Routes>
       </div>
     </Router>

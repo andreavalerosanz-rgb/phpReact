@@ -8,6 +8,20 @@
     "prices": "Prices",
     "contact": "Contact"
   },
+  "menu": {
+    "profile": "Profile",
+    "billing": "Billing",
+    "notifications": "Notifications",
+    "logout": "Logout"
+  },
+  "profile": {
+    "title": "User Profile",
+    "info": "Personal Information",
+    "name": "Username",
+    "email": "Email Address",
+    "type": "User Type",
+    "save": "Save Changes"
+  },
   "hero": {
     "title": "Airport-Hotel Transfers",
     "subtitle": "Without Complications",
@@ -49,10 +63,5 @@
     "quickLinks": "Quick Links",
     "contact": "Contact",
     "rights": "&copy; 2024 Isla Transfers. All rights reserved."
-  },
-    "test" : {
-    "sample": "this is a test"
-
-
   }
 }
