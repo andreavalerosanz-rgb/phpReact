@@ -1,0 +1,30 @@
+services:
+  db:
+    image: mysql:5.7
+    container_name: isla_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: isla-transfer
+      MYSQL_USER: isla
+      MYSQL_PASSWORD: isla
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: isla_pma
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_USER: isla
+      PMA_PASSWORD: isla
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
