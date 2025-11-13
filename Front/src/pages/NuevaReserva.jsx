@@ -40,7 +40,7 @@ const NuevaReserva = () => {
 
   return (
     <DashboardLayout currentUser={currentUser}>
-      <main className="!flex-1 !flex !items-center !justify-center !p-4 sm:!p-6 md:!p-10 !bg-gray-50">
+      <main className="!flex-1 !flex !items-center !justify-center !p-4 sm:!p-6 md:!p-10">
         <div className="!w-full !max-w-lg !rounded-2xl !bg-white !shadow-sm !p-8">
           <h2 className="!text-lg !font-semibold !mb-4 !text-center">
             Crear una nueva reserva
@@ -51,6 +51,7 @@ const NuevaReserva = () => {
           </p>
 
           <form onSubmit={handleSubmit} className="!space-y-5 !important">
+            
             <div>
               <Label htmlFor="servicio">Servicio</Label>
               <Input
