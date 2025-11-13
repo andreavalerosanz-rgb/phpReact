@@ -4,6 +4,7 @@ import Login from './pages/Login.jsx'
 import Home from './pages/Home.jsx'
 import Register from './pages/Register.jsx'
 import Calendario from './pages/Calendario.jsx'
+import NuevaReserva from './pages/NuevaReserva.jsx'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Register />} />
           <Route path="/calendario" element={<Calendario />} />
+          <Route path='/nueva-reserva' element={<NuevaReserva />} />
         </Routes>
       </div>
     </Router>
