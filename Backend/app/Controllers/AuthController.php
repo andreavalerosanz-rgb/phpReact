@@ -50,8 +50,8 @@ class AuthController extends Controller
             // Construir el token
             $payload = [
                 'userId'=> $hotel['id_hotel'],
-                'role'=> '$admin',
-                'email'=> $user['email'],
+                'role'=> '$hotel',
+                'email'=> $hotel['usuario'],
                 'iat'=> time(),
                 'exp'=> time()*(60*60*2),
             ];
@@ -74,7 +74,7 @@ class AuthController extends Controller
             // Construir el token
             $payload = [
                 'userId'=> $user['id_viajero'],
-                'role'=> '$admin',
+                'role'=> '$user',
                 'email'=> $user['email'],
                 'iat'=> time(),
                 'exp'=> time()*(60*60*2),
