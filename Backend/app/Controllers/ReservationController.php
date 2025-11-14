@@ -3,7 +3,7 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\DB;
-use App\Controllers\Helpers; // trait para generarLocalizador()
+use App\Helpers\Helpers; // trait para generarLocalizador()
 
 class ReservationController extends Controller {
   use Helpers;
