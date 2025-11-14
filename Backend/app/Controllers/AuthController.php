@@ -41,7 +41,7 @@ class AuthController extends Controller
         }
 
         // HOTEL (usa el campo 'usuario' que ahora es VARCHAR)
-        $st = DB::pdo()->prepare("SELECT * FROM transfer_hoteles WHERE usuario = ? LIMIT 1");
+        $st = DB::pdo()->prepare("SELECT * FROM transfer_hoteles WHERE email_hotel = ? LIMIT 1");
         $st->execute([$email]);
         $hotel = $st->fetch();
         
@@ -51,7 +51,7 @@ class AuthController extends Controller
             $payload = [
                 'userId'=> $hotel['id_hotel'],
                 'role'=> '$hotel',
-                'email'=> $hotel['usuario'],
+                'email'=> $hotel['email_hotel'],
                 'iat'=> time(),
                 'exp'=> time()*(60*60*2),
             ];
@@ -67,7 +67,7 @@ class AuthController extends Controller
         }
 
         // USUARIO / VIAJERO (email + password texto plano)
-        $st = DB::pdo()->prepare("SELECT * FROM transfer_viajeros WHERE email = ? LIMIT 1");
+        $st = DB::pdo()->prepare("SELECT * FROM transfer_viajeros WHERE email_viajero = ? LIMIT 1");
         $st->execute([$email]);
         $user = $st->fetch();
         if ($user && $pass === $user['password']) {
@@ -75,7 +75,7 @@ class AuthController extends Controller
             $payload = [
                 'userId'=> $user['id_viajero'],
                 'role'=> '$user',
-                'email'=> $user['email'],
+                'email'=> $user['email_viajero'],
                 'iat'=> time(),
                 'exp'=> time()*(60*60*2),
             ];
