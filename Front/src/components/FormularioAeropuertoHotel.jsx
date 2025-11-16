@@ -17,8 +17,26 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
+import { apiCrearReserva } from "@/api"
+import { mapReservaToBackend } from "@/backendMapper";
+
 
 export default function FormularioAeropuertoHotel({ onCancel }) {
+
+    async function enviarReserva() {
+        const mapped = mapReservaToBackend(form)
+        const token = localStorage.getItem("token")
+
+        try {
+            console.log("JSON generado:", mapped)
+            // No enviamos nada mientras no haya backend
+            setReservaConfirmada(true)
+        } catch (err) {
+            console.error(err)
+        }
+
+    }
+
     const [form, setForm] = useState({
         fechaLlegada: "",
         horaLlegada: "",
@@ -88,17 +106,23 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
 
                             <Field>
                                 <FieldLabel>Hora de llegada</FieldLabel>
-                                <Input type="time" />
+                                <Input type="time"
+                                    value={form.horaLlegada}
+                                    onChange={(e) => setForm({ ...form, horaLlegada: e.target.value })} />
                             </Field>
 
                             <Field>
                                 <FieldLabel>Número de vuelo</FieldLabel>
-                                <Input placeholder="Ej. IB1234" />
+                                <Input placeholder="Ej. IB1234"
+                                    value={form.vuelo}
+                                    onChange={(e) => setForm({ ...form, vuelo: e.target.value })} />
                             </Field>
 
                             <Field>
                                 <FieldLabel>Aeropuerto de origen</FieldLabel>
-                                <Input placeholder="Ej. Madrid-Barajas (MAD)" />
+                                <Input placeholder="Ej. Madrid-Barajas (MAD)"
+                                    value={form.aeropuertoOrigen}
+                                    onChange={(e) => setForm({ ...form, aeropuertoOrigen: e.target.value })} />
                             </Field>
 
                             <Field>
@@ -155,17 +179,23 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
 
                             <Field>
                                 <FieldLabel>Nombre completo</FieldLabel>
-                                <Input />
+                                <Input value={form.nombre}
+                                    onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                                />
                             </Field>
 
                             <Field>
                                 <FieldLabel>Email</FieldLabel>
-                                <Input type="email" />
+                                <Input type="email"
+                                    value={form.email}
+                                    onChange={(e) => setForm({ ...form, email: e.target.value })} />
                             </Field>
 
                             <Field>
                                 <FieldLabel>Teléfono</FieldLabel>
-                                <Input type="tel" />
+                                <Input type="tel"
+                                    value={form.telefono}
+                                    onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
                             </Field>
 
                             <Field className="ml-3! justify-end">
@@ -175,7 +205,7 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                                     </Button>
                                     <Button
                                         className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
-                                        onClick={() => setReservaConfirmada(true)}
+                                        onClick={enviarReserva}
                                     >
                                         Confirmar Reserva
                                     </Button>

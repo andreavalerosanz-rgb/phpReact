@@ -15,6 +15,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { apiLogin } from "../api.js";
+import { mapLoginToBackend } from "../backendMapper.js";
 
 export function LoginForm({ className, ...props }) {
   const [formData, setFormData] = useState({
@@ -30,31 +32,17 @@ export function LoginForm({ className, ...props }) {
   e.preventDefault()
 
   try {
-    const response = await fetch("http://localhost:8000/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData)
-    })
+    const mapped = mapLoginToBackend(formData)
+    console.log("JSON LOGIN generado:", mapped)
 
-    if (!response.ok) throw new Error("Credenciales inválidas")
+    await apiLogin(mapped) // ← NO hace fetch real
 
-    const data = await response.json()
-
-    // Ejemplo de lo que devuelve el back:
-    // { token: "...", user: { name: "", email: "", type: "hotel" } }
-
-    localStorage.setItem("token", data.token)
-    localStorage.setItem("userData", JSON.stringify(data.user))
-    localStorage.setItem("userType", data.user.type)
-
-    // Redirigir al dashboard
-    window.location.href = "/dashboard"
-
+    alert("Login preparado (sin enviar todavía)")
   } catch (err) {
     console.error(err)
-    alert("No se pudo iniciar sesión")
   }
 }
+
 
   return (
     <div className={cn("", className)} {...props}>

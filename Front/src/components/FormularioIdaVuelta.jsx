@@ -17,8 +17,26 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
+import { apiCrearReserva } from "@/api"
+import { mapReservaToBackend } from "@/backendMapper";
 
 export default function FormularioIdaVuelta({ onCancel }) {
+
+    async function enviarReserva() {
+        try {
+            const mapped = mapReservaToBackend(form, "ida-vuelta")
+            console.log("JSON generado:", mapped)
+
+
+            // No hay backend → confirmamos directamente
+            setReservaConfirmada(true)
+
+        } catch (err) {
+            console.error(err)
+            alert("Error al procesar la reserva")
+        }
+    }
+
 
     const hoy = new Date().toISOString().split("T")[0];
     const [step, setStep] = useState(1);
@@ -361,7 +379,7 @@ export default function FormularioIdaVuelta({ onCancel }) {
 
                     <Button
                         className="rounded-lg! bg-(--dark-slate-gray) hover:bg-(--ebony)! text-(--ivory)"
-                        onClick={() => setReservaConfirmada(true)}
+                        onClick={enviarReserva}
                     >
                         Confirmar reserva
                     </Button>
@@ -372,36 +390,36 @@ export default function FormularioIdaVuelta({ onCancel }) {
 
 
     return (
-    <Card className="w-full max-w-3xl mx-auto">
-        <div className="md:p-6!">
+        <Card className="w-full max-w-3xl mx-auto">
+            <div className="md:p-6!">
 
-            {!reservaConfirmada && (
-                <CardHeader className="text-center mb-6">
-                    <CardTitle className="text-2xl">Ida y Vuelta</CardTitle>
-                </CardHeader>
-            )}
-
-            <CardContent>
-
-                {reservaConfirmada ? (
-                    <ConfirmacionReserva
-                        onBack={() => {
-                            setReservaConfirmada(false);
-                            onCancel();
-                        }}
-                    />
-                ) : (
-                    <>
-                        {step === 1 && renderPaso1()}
-                        {step === 2 && renderPaso2()}
-                        {step === 3 && renderPaso3()}
-                    </>
+                {!reservaConfirmada && (
+                    <CardHeader className="text-center mb-6">
+                        <CardTitle className="text-2xl">Ida y Vuelta</CardTitle>
+                    </CardHeader>
                 )}
 
-            </CardContent>
+                <CardContent>
 
-        </div>
-    </Card>
-);
+                    {reservaConfirmada ? (
+                        <ConfirmacionReserva
+                            onBack={() => {
+                                setReservaConfirmada(false);
+                                onCancel();
+                            }}
+                        />
+                    ) : (
+                        <>
+                            {step === 1 && renderPaso1()}
+                            {step === 2 && renderPaso2()}
+                            {step === 3 && renderPaso3()}
+                        </>
+                    )}
+
+                </CardContent>
+
+            </div>
+        </Card>
+    );
 }
 

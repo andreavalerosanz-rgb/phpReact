@@ -17,8 +17,27 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
+import { apiCrearReserva } from "@/api"
+import { mapReservaToBackend } from "@/backendMapper";
 
 export default function FormularioHotelAeropuerto({ onCancel }) {
+
+    async function enviarReserva() {
+        try {
+            const mapped = mapReservaToBackend(form)
+            const token = localStorage.getItem("token")
+
+            console.log("JSON generado:", mapped)
+            setReservaConfirmada(true)
+            return
+
+
+        } catch (err) {
+            console.error(err)
+            alert("Error al procesar reserva")
+        }
+    }
+
 
     const [form, setForm] = useState({
         fechaVuelo: "",
@@ -211,7 +230,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     </Button>
                                     <Button
                                         className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
-                                        onClick={() => setReservaConfirmada(true)}
+                                        onClick={enviarReserva}
                                     >
                                         Confirmar Reserva
                                     </Button>
