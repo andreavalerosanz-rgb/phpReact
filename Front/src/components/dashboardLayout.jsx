@@ -5,26 +5,32 @@ import {
   IconListDetails,
   IconChartBar,
   IconUsers,
-  IconSettings,
+  IconCalendar,
   IconFileDescription,
 } from "@tabler/icons-react"
 
 const menus = {
   admin: [
+    { title: "Resumen", url: "/dashboard", icon: IconChartBar },
     { title: "Reservas", url: "/reservas", icon: IconListDetails },
-    { title: "Calendario", url: "/calendario", icon: IconChartBar },
-    { title: "Usuarios", url: "#", icon: IconUsers },
-    { title: "Configuración", url: "#", icon: IconSettings },
+    { title: "Calendario", url: "/calendario", icon: IconCalendar },
+    { title: "Nueva Reserva", url: "/reservas/nueva", icon: IconFileDescription },
   ],
+
   particular: [
+    { title: "Resumen", url: "/dashboard", icon: IconChartBar },
     { title: "Mis Reservas", url: "/reservas", icon: IconListDetails },
     { title: "Nueva Reserva", url: "/reservas/nueva", icon: IconFileDescription },
+    { title: "Calendario", url: "/calendario", icon: IconCalendar },
     { title: "Mi Perfil", url: "/perfil", icon: IconUsers },
   ],
+
   empresa: [
+    { title: "Resumen", url: "/dashboard", icon: IconChartBar },
     { title: "Mis Reservas", url: "/reservas", icon: IconListDetails },
     { title: "Nueva Reserva", url: "/reservas/nueva", icon: IconFileDescription },
-    { title: "Perfil Empresa", url: "#", icon: IconUsers },
+    { title: "Calendario", url: "/calendario", icon: IconCalendar },
+    { title: "Perfil Empresa", url: "/perfil", icon: IconUsers },
   ],
 }
 

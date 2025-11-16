@@ -398,6 +398,21 @@ footer a:hover {
   border-color: var(--dark-slate-gray);
 }
 
+/* 🔹 Ocultar la flechita del tooltip */
+[data-slot="tooltip-content"] span svg {
+  display: none !important;
+}
+
+/* 🔹 Forzar tooltip arriba y centrado */
+[data-slot="tooltip-content"][data-side="top"] {
+  transform: translateY(-6px) !important;
+}
+
+/* 🔹 Eliminar el espacio que deja el contenedor de la flecha */
+[data-slot="tooltip-content"] span[style*="translateY(100%)"] {
+  display: none !important;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

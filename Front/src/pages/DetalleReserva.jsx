@@ -1,111 +1,311 @@
 import React, { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { DashboardLayout } from "@/components/dashboardLayout"
-import { CalendarDays, Clock, Save, XCircle } from "lucide-react"
+import { useParams, useNavigate } from "react-router-dom"
+import { reservasEjemplo } from '../components/reservasEjemplo'
+
+import {
+  PlaneLanding,
+  PlaneTakeoff,
+  UserRound,
+  Save,
+  XCircle,
+} from "lucide-react"
+
 import { toast, ToastContainer } from "react-toastify"
-import { useNavigate } from "react-router"
 import "react-toastify/dist/ReactToastify.css"
-import { Nav } from "react-day-picker"
 
 const DetalleReserva = () => {
-  const [reserva, setReserva] = useState(null)
-  const [editable, setEditable] = useState(true)
-  const [initialReserva, setInitialReserva] = useState(null) // Para reset
+  const { id } = useParams()
   const navigate = useNavigate()
-  useEffect(() => {
-    const reservaInicial = {
-      id: 1,
-      servicio: "Sala de reuniones A",
-      fecha: "2025-11-20T14:00:00",
-      estado: "Confirmada",
-      descripcion: "Reunión con el equipo de marketing.",
-    }
-    setReserva(reservaInicial)
-    setInitialReserva(reservaInicial)
-  }, [])
+  const [reserva, setReserva] = useState(null)
+  const [initialReserva, setInitialReserva] = useState(null)
+  const [editable, setEditable] = useState(true)
 
-  if (!reserva) return null
+  const hoy = new Date().toISOString().split("T")[0]
+  
+useEffect(() => {
+  const r = reservasEjemplo.find(res => res.id === Number(id))
+  setReserva(r)
+  setInitialReserva(r)
+}, [id])
 
-  const handleSave = () => {
-    toast.success("Reserva actualizada correctamente ✅", { position: "top-right" })
-    console.log("Reserva guardada:", reserva) // Aquí irá el POST al backend
+if (!reserva) return <DashboardLayout>Cargando...</DashboardLayout>
+
+const isIdaVuelta = reserva?.tipo === "ida-vuelta"
+const columnas = isIdaVuelta
+  ? "grid-cols-1 md:grid-cols-4"
+  : "grid-cols-1 md:grid-cols-2"
+
+// --------------------------------------------------------------
+// Input reutilizable
+// --------------------------------------------------------------
+function InputBlock({ label, type = "text", value, onChange, min, disabled }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <Input
+        className="mt-1"
+        type={type}
+        value={value || ""}
+        min={min}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  )
+}
+
+// --------------------------------------------------------------
+// Bloque Aeropuerto → Hotel
+// --------------------------------------------------------------
+function BloqueAeropuertoHotel({ reserva, update, editable, hoy, columnas }) {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4">
+        <PlaneLanding className="w-5 h-5 text-blue-500" />
+        Llegada (Aeropuerto 🡪 Hotel)
+      </h3>
+
+      <div className={`grid gap-6 ${columnas}`}>
+        <InputBlock
+          label="Fecha de llegada"
+          type="date"
+          value={reserva.fechaLlegada}
+          min={hoy}
+          disabled={!editable}
+          onChange={(v) => update("fechaLlegada", v)}
+        />
+
+        <InputBlock
+          label="Hora de aterrizaje"
+          type="time"
+          value={reserva.horaLlegada}
+          disabled={!editable}
+          onChange={(v) => update("horaLlegada", v)}
+        />
+
+        <InputBlock
+          label="Número de vuelo"
+          value={reserva.vueloLlegada}
+          disabled={!editable}
+          onChange={(v) => update("vueloLlegada", v)}
+        />
+
+        <InputBlock
+          label="Aeropuerto de origen"
+          value={reserva.origen}
+          disabled={!editable}
+          onChange={(v) => update("origen", v)}
+        />
+
+        <InputBlock
+          label="Hora de recogida"
+          type="time"
+          value={reserva.horaRecogida}
+          disabled={!editable}
+          onChange={(v) => update("horaRecogida", v)}
+        />
+
+        <InputBlock
+          label="Hotel de destino"
+          value={reserva.hotelDestino}
+          disabled={!editable}
+          onChange={(v) => update("hotelDestino", v)}
+        />
+      </div>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------
+// Bloque Hotel → Aeropuerto
+// --------------------------------------------------------------
+function BloqueHotelAeropuerto({ reserva, update, editable, hoy, columnas }) {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4 mt-6!">
+        <PlaneTakeoff className="w-5 h-5 text-green-600" />
+        Salida (Hotel 🡪 Aeropuerto)
+      </h3>
+
+      <div className={`grid gap-6 ${columnas}`}>
+        <InputBlock
+          label="Fecha de vuelta"
+          type="date"
+          min={reserva.fechaLlegada || hoy}
+          value={reserva.fechaVuelta}
+          disabled={!editable}
+          onChange={(v) => update("fechaVuelta", v)}
+        />
+
+        <InputBlock
+          label="Hora del vuelo"
+          type="time"
+          value={reserva.horaVueloSalida}
+          disabled={!editable}
+          onChange={(v) => update("horaVueloSalida", v)}
+        />
+
+        <InputBlock
+          label="Número de vuelo"
+          value={reserva.vueloSalida}
+          disabled={!editable}
+          onChange={(v) => update("vueloSalida", v)}
+        />
+
+        <InputBlock
+          label="Aeropuerto de salida"
+          value={reserva.aeropuertoSalida}
+          disabled={!editable}
+          onChange={(v) => update("aeropuertoSalida", v)}
+        />
+
+        <InputBlock
+          label="Hora de recogida"
+          type="time"
+          value={reserva.horaRecogidaHotel}
+          disabled={!editable}
+          onChange={(v) => update("horaRecogidaHotel", v)}
+        />
+
+        <InputBlock
+          label="Hotel de recogida"
+          value={reserva.hotelRecogida}
+          disabled={!editable}
+          onChange={(v) => update("hotelRecogida", v)}
+        />
+      </div>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------
+// Bloque pasajero
+// --------------------------------------------------------------
+function BloquePasajero({ pasajeros, updatePassenger, editable, columnas }) {
+  return (
+    <div>
+      <h3 className="text-lg font-semibold flex items-center gap-2 text-gray-800 mb-4 mt-6!">
+        <UserRound className="w-5 h-5 text-purple-600" />
+        Datos del pasajero
+      </h3>
+
+      <div className={`grid gap-6 ${columnas}`}>
+        <InputBlock
+          label="Número de viajeros"
+          type="number"
+          min="1"
+          value={pasajeros.viajeros}
+          disabled={!editable}
+          onChange={(v) => updatePassenger("viajeros", Math.max(1, Number(v)))}
+        />
+
+        <InputBlock
+          label="Nombre completo"
+          value={pasajeros.nombre}
+          disabled={!editable}
+          onChange={(v) => updatePassenger("nombre", v)}
+        />
+
+        <InputBlock
+          label="Email"
+          type="email"
+          value={pasajeros.email}
+          disabled={!editable}
+          onChange={(v) => updatePassenger("email", v)}
+        />
+
+        <InputBlock
+          label="Teléfono"
+          type="tel"
+          value={pasajeros.telefono}
+          disabled={!editable}
+          onChange={(v) => updatePassenger("telefono", v)}
+        />
+      </div>
+    </div>
+  )
+}
+  // --------------------------------------------------------------
+  // Acciones
+  // --------------------------------------------------------------
+  const update = (campo, valor) => {
+    setReserva((prev) => ({ ...prev, [campo]: valor }))
+  }
+
+  const updatePassenger = (campo, valor) => {
+    setReserva((prev) => ({
+      ...prev,
+      pasajeros: { ...prev.pasajeros, [campo]: valor },
+    }))
   }
 
   const handleCancel = () => {
+    setReserva(initialReserva)
     toast.info("Cambios cancelados", { position: "top-right" })
-    setReserva(initialReserva) // Reset a los valores por defecto
-    navigate(-1) // Volver a la página anterior
-
+    navigate(-1)
   }
 
+  const handleSave = () => {
+    toast.success("Reserva actualizada correctamente", { position: "top-right" })
+  }
+
+  // --------------------------------------------------------------
+  // Render
+  // --------------------------------------------------------------
   return (
     <DashboardLayout>
-      <div className="!flex-1 !flex !items-center !justify-center !p-8 !bg-gray-50">
-        <div className="!w-full !max-w-xl !bg-white !rounded-2xl !shadow-sm !border !border-gray-200 !p-8">
-          <h2 className="!text-xl !font-semibold !mb-6 !text-gray-800">
+      <div className="flex-1 flex items-center justify-center p-8 mt-3">
+        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-sm border border-gray-200 p-2!">
+
+          <h2 className="text-xl font-semibold mb-6 text-gray-800 mt-4!">
             Editar Reserva #{reserva.id}
           </h2>
 
-          <div className="!space-y-5">
-            <div>
-              <label className="!text-sm !font-medium !text-gray-700">Servicio</label>
-              <Input
-                type="text"
-                value={reserva.servicio}
-                disabled={!editable}
-                onChange={(e) => setReserva({ ...reserva, servicio: e.target.value })}
-                className="!mt-1"
-              />
-            </div>
+          <div className="space-y-14">
 
-            <div>
-              <label className="!text-sm !font-medium !text-gray-700 !flex !items-center !gap-2">
-                <CalendarDays className="!w-4 !h-4 !text-blue-500" /> Fecha
-              </label>
-              <Input
-                type="datetime-local"
-                value={new Date(reserva.fecha).toISOString().slice(0, 16)}
-                disabled={!editable}
-                onChange={(e) => setReserva({ ...reserva, fecha: e.target.value })}
-                className="!mt-1"
+            {(reserva.tipo === "aeropuerto-hotel" || isIdaVuelta) && (
+              <BloqueAeropuertoHotel
+                reserva={reserva}
+                update={update}
+                editable={editable}
+                hoy={hoy}
+                columnas={columnas}
               />
-            </div>
+            )}
 
-            <div>
-              <label className="!text-sm !font-medium !text-gray-700">Estado</label>
-              <Input
-                type="text"
-                value={reserva.estado}
-                disabled={!editable}
-                onChange={(e) => setReserva({ ...reserva, estado: e.target.value })}
-                className="!mt-1"
+            {(reserva.tipo === "hotel-aeropuerto" || isIdaVuelta) && (
+              <BloqueHotelAeropuerto
+                reserva={reserva}
+                update={update}
+                editable={editable}
+                hoy={hoy}
+                columnas={columnas}
               />
-            </div>
+            )}
 
-            <div>
-              <label className="!text-sm !font-medium !text-gray-700 !flex !items-center !gap-2">
-                <Clock className="!w-4 !h-4 !text-blue-500" /> Descripción
-              </label>
-              <Textarea
-                value={reserva.descripcion}
-                disabled={!editable}
-                onChange={(e) => setReserva({ ...reserva, descripcion: e.target.value })}
-                className="!mt-1"
-                rows={4}
-              />
-            </div>
+            <BloquePasajero
+              pasajeros={reserva.pasajeros}
+              updatePassenger={updatePassenger}
+              editable={editable}
+              columnas={columnas}
+            />
           </div>
 
-          <div className="!flex !justify-end !gap-3 !mt-8">
-            <Button variant="outline" onClick={handleCancel}>
-              <XCircle className="!w-4 !h-4 !mr-2" /> Cancelar cambios
+          <hr className="my-10" />
+
+          <div className="flex justify-center gap-3 mt-2 mb-4!">
+            <Button variant="outline" className="rounded-lg!" onClick={handleCancel} >
+              <XCircle className="w-4 h-4 mr-2" /> Cancelar cambios
             </Button>
-            <Button onClick={handleSave}>
-              <Save className="!w-4 !h-4 !mr-2" /> Guardar cambios
+
+            <Button className="rounded-lg!" onClick={handleSave} >
+              <Save className="w-4 h-4 mr-2" /> Guardar cambios
             </Button>
           </div>
+
         </div>
       </div>
 

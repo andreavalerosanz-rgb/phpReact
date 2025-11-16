@@ -24,14 +24,18 @@ import {
 } from "@/components/ui/select";
 
 export default function FormularioTraslados({ onSelect, className, ...props }) {
-    const [tipo, setTipo] = useState("");
+  const [tipo, setTipo] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!tipo) return;
+    onSelect(tipo); 
+  };
 
 
     return (
         <div className={cn("", className)} {...props}>
-            {/* Tamaño corregido y consistente con el resto de tus cards */}
             <Card className="w-full max-w-md mx-auto">
-                {/* Padding consistente con la card de login */}
                 <div className="p-4">
                     <CardHeader className="text-center mb-6">
                         <CardTitle className="text-2xl p-1">Reserva tu traslado</CardTitle>
@@ -42,7 +46,7 @@ export default function FormularioTraslados({ onSelect, className, ...props }) {
 
 
                     <CardContent>
-                        <form>
+                        <form onSubmit={handleSubmit}>
                             <FieldGroup>
                                 <Field className="mt-4">
                                     <FieldLabel>Escoge el tipo de traslado</FieldLabel>
@@ -59,8 +63,8 @@ export default function FormularioTraslados({ onSelect, className, ...props }) {
                                 </Field>
                                 <Field>
                                     <Button
-                                        type="submit" className="rounded-lg!" disabled={!tipo}
-                                        onClick={() => onSelect(tipo)}
+                                        type="submit"
+                                        className="!rounded-lg !px-6 !py-2 !font-medium !shadow-md hover:!shadow-lg !bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] !text-[var(--ivory)] !transition-all"
                                     >
                                         Continuar
                                     </Button>

@@ -4,6 +4,7 @@ import ReservaItem from "@/components/ReservaItem"
 import { ToastContainer, toast } from "react-toastify"
 import { useNavigate } from "react-router-dom"
 import "react-toastify/dist/ReactToastify.css"
+import { reservasEjemplo } from "../components/reservasEjemplo"
 
 const MisReservas = () => {
   const [reservas, setReservas] = useState([])
@@ -15,13 +16,8 @@ const MisReservas = () => {
   )
 
   useEffect(() => {
-    // Simulación de reservas cargadas
-    setReservas([
-      { id: 1, fecha: "2025-11-20T14:00:00", servicio: "Sala A", estado: "Confirmada" },
-      { id: 2, fecha: "2025-11-14T09:00:00", servicio: "Sala B", estado: "Pendiente" },
-      { id: 3, fecha: "2025-11-25T16:00:00", servicio: "Sala C", estado: "Confirmada" },
-    ])
-  }, [])
+  setReservas(reservasEjemplo)
+}, [])
 
   const handleEdit = (reserva) => {
     toast.info(`Abriendo reserva #${reserva.id} (${reserva.servicio})...`, {

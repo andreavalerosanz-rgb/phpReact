@@ -27,10 +27,10 @@ const ReservaItem = ({ reserva, onEdit, onCancel }) => {
           </span>
         ) : (
           <div className="flex gap-2 justify-center">
-            <Button size="sm" variant="outline" onClick={() => onEdit(reserva)}>
+            <Button size="sm" className="rounded-lg!" variant="outline" onClick={() => onEdit(reserva)}>
               <IconEdit size={16} /> Editar
             </Button>
-            <Button size="sm" variant="destructive" onClick={() => onCancel(reserva)}>
+            <Button size="sm" className="rounded-lg!" variant="destructive" onClick={() => onCancel(reserva)}>
               <IconX size={16} /> Cancelar
             </Button>
           </div>

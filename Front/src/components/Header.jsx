@@ -37,12 +37,6 @@ const Header = () => {
             <li className="nav-item">
               <Link className="nav-link fw-semibold" to="/servicios">{t('common.services')}</Link>
             </li>
-            <li className="nav-item">
-              <Link className="nav-link fw-semibold" to="/precios">{t('common.prices')}</Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link fw-semibold" to="/contacto">{t('common.contact')}</Link>
-            </li>
           </ul>
           
           <div className="d-flex gap-2 align-items-center">

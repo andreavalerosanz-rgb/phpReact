@@ -19,6 +19,7 @@ import { DayPicker, getDefaultClassNames } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
+import { useNavigate } from "react-router-dom"
 import {
   Select,
   SelectContent,
@@ -26,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { reservasEjemplo } from '../components/reservasEjemplo'
 
 // Colores según tipo de traslado
 const tipoColor = {
@@ -34,42 +36,21 @@ const tipoColor = {
   "ida-vuelta": "bg-orange-500",
 }
 
-// Datos de ejemplo
-const eventosEjemplo = [
-  {
-    id: 1,
-    tipo: "aeropuerto-hotel",
-    fecha: new Date(2025, 10, 11, 9, 30),
-    descripcion: "Traslado vuelo UX123 a Hotel Melià",
-  },
-  {
-    id: 2,
-    tipo: "hotel-aeropuerto",
-    fecha: new Date(2025, 10, 11, 18, 0),
-    descripcion: "Traslado de Catalonia Hotel a T1 - El Prat",
-  },
-  {
-    id: 3,
-    tipo: "ida-vuelta",
-    fecha: new Date(2025, 10, 13, 11, 0),
-    descripcion: "Traslado ida de T2 - El Prat a Hotel Ibis",
-  },
-  {
-    id: 4,
-    tipo: "ida-vuelta",
-    fecha: new Date(2025, 10, 15, 17, 0),
-    descripcion: "Traslado vuelta de Hotel Ibis a T2 - El Prat.",
-  },
-]
+const eventos = reservasEjemplo.map(r => ({
+  id: r.id,
+  title: r.servicio,
+  start: new Date(r.fecha),
+  end: new Date(r.fecha)
+}))
+
+const eventosDia = (date) =>
+  reservasEjemplo.filter((e) => isSameDay(new Date(e.fecha), date))
 
 export function CalendarReservas() {
   const [view, setView] = useState("week") // month | week | day
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
-
-  const eventosDia = (date) =>
-    eventosEjemplo.filter((e) => isSameDay(e.fecha, date))
-
+  const navigate = useNavigate()
   // === VISTA SEMANAL ===
   const renderSemana = () => {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 })
@@ -104,10 +85,15 @@ export function CalendarReservas() {
                   </span>
                 ) : (
                   eventosDia(d).map((ev) => (
-                    <div key={ev.id} className={`text-xs text-white p-1 rounded ${tipoColor[ev.tipo]}`}>
-                      {ev.descripcion}
+                    <div
+                      key={ev.id}
+                      className={`cursor-pointer text-xs text-white p-1 rounded ${tipoColor[ev.tipo]}`}
+                      onClick={() => navigate(`/calendario/reserva/${ev.id}`)}
+                    >
+                      {ev.servicio}
                     </div>
                   ))
+
                 )}
               </div>
             </div>
@@ -143,10 +129,13 @@ export function CalendarReservas() {
             eventos.map((e) => (
               <div
                 key={e.id}
-                className={`p-3 rounded-md text-white ${tipoColor[e.tipo]} w-2/3 mx-auto`}
+                className={`cursor-pointer p-2 rounded-md text-white ${tipoColor[e.tipo]}`}
+                onClick={() => navigate(`/calendario/reserva/${e.id}`)}
               >
+
+
                 <div className="font-semibold">
-                  {format(e.fecha, "HH:mm")} – {e.descripcion}
+                  {format(e.fecha, "HH:mm")} – {e.servicio}
                 </div>
               </div>
             ))
@@ -205,15 +194,17 @@ export function CalendarReservas() {
               caption: "hidden",
               caption_label: "hidden",
               caption_dropdowns: "hidden",
-              day_button: "p-0 m-0 w-full h-full", 
+              day_button: "p-0 m-0 w-full h-full",
             }}
             components={{
               Chevron: () => null,
               DayButton: ({ day, modifiers, ...props }) => {
                 const fechaDia = day.date.toDateString()
-                const eventosDelDia = eventosEjemplo.filter(
-                  (e) => e.fecha.toDateString() === fechaDia
+                const eventosDelDia = reservasEjemplo.filter(
+                  (e) => new Date(e.fecha).toDateString() === day.date.toDateString()
                 )
+
+
 
                 return (
                   <Button
@@ -258,9 +249,11 @@ export function CalendarReservas() {
                   {format(selectedDay, "d 'de' MMMM yyyy", { locale: es })}
                 </h3>
                 {(() => {
-                  const eventosDelDia = eventosEjemplo.filter(
-                    (e) => e.fecha.toDateString() === selectedDay.toDateString()
-                  )
+                  const eventosDelDia = selectedDay
+                    ? reservasEjemplo.filter(
+                      (e) => new Date(e.fecha).toDateString() === selectedDay.toDateString()
+                    )
+                    : []
                   return eventosDelDia.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                       No hay traslados para este día.
@@ -270,10 +263,11 @@ export function CalendarReservas() {
                       {eventosDelDia.map((e) => (
                         <div
                           key={e.id}
-                          className={`p-2 rounded-md text-white ${tipoColor[e.tipo]}`}
+                          className={`cursor-pointer p-3 rounded-md text-white ${tipoColor[e.tipo]} w-2/3 mx-auto`}
+                          onClick={() => navigate(`/calendario/reserva/${e.id}`)}
                         >
                           <div className="text-sm font-medium">
-                            {format(e.fecha, "HH:mm")} — {e.descripcion}
+                            {format(e.fecha, "HH:mm")} — {e.servicio}
                           </div>
                         </div>
                       ))}
@@ -294,7 +288,7 @@ export function CalendarReservas() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 mt-4">
         <div className="flex flex-col gap-2">
           <Label>Vista</Label>
           <Select value={view} onValueChange={setView}>

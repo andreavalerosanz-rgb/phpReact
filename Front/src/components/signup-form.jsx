@@ -25,6 +25,32 @@ import {
 export function SignupForm({
   ...props
 }) {
+
+  const handleRegister = async (e) => {
+  e.preventDefault()
+
+  const dataToSend = {
+    tipo: e.target["tipo-cliente"].value,
+    name: e.target["name"].value,
+    email: e.target["email"].value,
+    password: e.target["password"].value,
+  }
+
+  const response = await fetch("http://localhost:8000/api/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dataToSend),
+  })
+
+  if (!response.ok) {
+    alert("Error al registrar")
+    return
+  }
+
+  alert("Cuenta creada. Ahora inicia sesión.")
+  window.location.href = "/login"
+}
+
   return (
     <Card {...props}>
       <div className="p-4">
@@ -35,7 +61,7 @@ export function SignupForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form>
+        <form onSubmit={handleRegister}>
           <FieldGroup>
             <Field className="mt-4">
               <FieldLabel htmlFor="tipo-cliente">Tipo de cliente</FieldLabel>

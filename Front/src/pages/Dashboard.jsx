@@ -2,15 +2,14 @@ import React, { useEffect, useState } from "react"
 import { DashboardLayout } from "@/components/dashboardLayout"
 
 const Dashboard = () => {
-const [currentUser, setCurrentUser] = useState(
-  localStorage.getItem("userData")
-    ? JSON.parse(localStorage.getItem("userData"))
-    : { name: "John Doe", email: "john@example.com" }
-)
+  const [currentUser, setCurrentUser] = useState(
+    localStorage.getItem("userData")
+      ? JSON.parse(localStorage.getItem("userData"))
+      : { name: "John Doe", email: "john@example.com" }
+  )
 
-
-  // optional: get userType from localStorage if needed
   const [userType, setUserType] = useState(null)
+
   useEffect(() => {
     const storedType = localStorage.getItem("userType") || "particular"
     setUserType(storedType.toLowerCase())
@@ -18,47 +17,62 @@ const [currentUser, setCurrentUser] = useState(
 
   if (!userType) return null
 
-  // Dashboard content for each type
+  // ------ PLACEHOLDER DE RESERVAS ------
+  const reservasEjemplo = {
+    admin: 34,         // reservas del mes
+    particular: 12,    // reservas del usuario
+    empresa: 21,       // traslados al hotel este mes
+  }
+
   const dashboardContent = {
     admin: (
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-base font-semibold mb-2">Estadísticas Rápidas</h2>
-          <p className="text-sm text-gray-600">Resumen de reservas, usuarios y actividad.</p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-base font-semibold mb-2">Accesos Directos</h2>
-          <p className="text-sm text-gray-600">Funciones principales para administrar el sistema.</p>
+      <div className="flex justify-center mt-20!">
+        <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
+          <h2 className="text-2xl font-semibold mb-4">Reservas totales de este mes</h2>
+          <p className="text-5xl font-bold text-green-600">
+            {reservasEjemplo.admin}
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Total de reservas registradas este mes.
+          </p>
         </div>
       </div>
     ),
+
     particular: (
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-base font-semibold mb-2">Resumen de Reservas</h2>
-          <p className="text-sm text-gray-600">Tus últimas reservas.</p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-base font-semibold mb-2">Total de Reservas</h2>
-          <p className="text-sm text-gray-600">Contador de reservas totales.</p>
+      <div className="flex justify-center mt-20!">
+        <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
+          <h2 className="text-2xl font-semibold mb-4">Tus reservas totales</h2>
+          <p className="text-5xl font-bold text-blue-600">
+            {reservasEjemplo.particular}
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            ¡Vamos a por más!
+          </p>
         </div>
       </div>
     ),
+
     empresa: (
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-base font-semibold mb-2">Resumen de Reservas Empresa</h2>
-          <p className="text-sm text-gray-600">Reservas recientes de tu empresa.</p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-base font-semibold mb-2">Total de Reservas Empresa</h2>
-          <p className="text-sm text-gray-600">Contador de reservas totales de empresa.</p>
+      <div className="flex justify-center mt-20!">
+        <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
+          <h2 className="text-2xl font-semibold mb-4">Traslados este mes</h2>
+          <p className="text-5xl font-bold text-purple-600">
+            {reservasEjemplo.empresa}
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Total de traslados hacia tu hotel.
+          </p>
         </div>
       </div>
     ),
   }
 
-  return <DashboardLayout currentUser={currentUser}>{dashboardContent[userType]}</DashboardLayout>
+  return (
+    <DashboardLayout currentUser={currentUser}>
+      {dashboardContent[userType]}
+    </DashboardLayout>
+  )
 }
 
 export default Dashboard
