@@ -2,129 +2,624 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Sandbox API – Isla Transfers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
+      :root {
+        --bg-main: #344238;
+        --bg-card: #f3f0e4;
+        --bg-card-alt: #e5e0d0;
+        --accent: #d9c79c;
+        --accent-dark: #b8a06e;
+        --text-main: #f8f4e9;
+        --text-dark: #263128;
+        --danger: #b93737;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: system-ui, Arial;
-        margin: 20px;
-        max-width: 900px;
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: var(--bg-main);
+        color: var(--text-main);
       }
-      h2 {
-        margin-top: 32px;
-      }
-      pre {
-        background: #0b0b0b;
-        color: #eaeaea;
-        padding: 12px;
-        border-radius: 8px;
-        overflow: auto;
-      }
-      .row {
+
+      header {
+        padding: 18px 32px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
-        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        font-weight: 700;
+        font-size: 1.2rem;
+        letter-spacing: 0.03em;
+      }
+
+      .env-badge {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      main {
+        padding: 24px 32px 40px;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+        gap: 32px;
+        align-items: center;
+        margin-bottom: 32px;
+      }
+
+      .hero-title {
+        font-size: clamp(2.1rem, 2.6vw, 2.6rem);
+        font-weight: 800;
+        line-height: 1.1;
+      }
+
+      .hero-subtitle {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-top: 8px;
+        color: #f0e4c5;
+      }
+
+      .hero-text {
+        margin-top: 14px;
+        max-width: 32rem;
+        color: rgba(250, 245, 235, 0.9);
+      }
+
+      .hero-buttons {
+        margin-top: 18px;
+        display: flex;
         flex-wrap: wrap;
+        gap: 10px;
       }
-      .card {
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        padding: 12px;
-        flex: 1;
-        min-width: 260px;
-      }
-      button {
+
+      .btn-primary,
+      .btn-secondary {
+        border-radius: 999px;
+        padding: 9px 18px;
+        font-size: 0.95rem;
+        border: none;
         cursor: pointer;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid #444;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
       }
-      input {
-        padding: 8px;
-        border-radius: 8px;
-        border: 1px solid #bbb;
-        width: 100%;
+
+      .btn-primary {
+        background: var(--accent);
+        color: var(--text-dark);
       }
+
+      .btn-primary:hover {
+        background: var(--accent-dark);
+      }
+
+      .btn-secondary {
+        background: transparent;
+        color: var(--text-main);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+      }
+
+      .btn-secondary:hover {
+        background: rgba(0, 0, 0, 0.25);
+      }
+
+      .hero-graphic {
+        justify-self: center;
+      }
+
+      .plane-card {
+        width: 260px;
+        height: 220px;
+        border-radius: 32px;
+        background: linear-gradient(145deg, #fafdff, #d7f5ff);
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 26px 45px rgba(0, 0, 0, 0.35);
+      }
+
+      .plane-cloud {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        bottom: -40px;
+        left: -20px;
+        background: #ffffff;
+        border-radius: 50%;
+        box-shadow: 80px -10px 0 #f1fbff, 150px 20px 0 #ffffff,
+          40px 40px 0 #f1fbff;
+      }
+
+      .plane-icon {
+        position: absolute;
+        right: 26px;
+        top: 40px;
+        width: 70px;
+        height: 70px;
+        background: none;
+        border: 3px solid #ffffff;
+        border-radius: 20px;
+        transform: rotate(22deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .plane-icon::before {
+        content: "✈";
+        font-size: 30px;
+        color: #ffffff;
+        transform: translateY(-2px);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        background: var(--bg-card);
+        color: var(--text-dark);
+        border-radius: 14px;
+        padding: 14px 14px 12px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+      }
+
+      .card.alt {
+        background: var(--bg-card-alt);
+      }
+
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 1.05rem;
+      }
+
+      .card small {
+        display: block;
+        color: #5d685f;
+        margin-bottom: 8px;
+        font-size: 0.8rem;
+      }
+
       label {
-        font-size: 0.9rem;
-        color: #333;
+        display: block;
+        font-size: 0.78rem;
+        margin-bottom: 3px;
+        color: #4c574e;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #d0c8b4;
+        padding: 7px 9px;
+        font-size: 0.85rem;
+        font-family: inherit;
+        margin-bottom: 6px;
+      }
+
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+      }
+
+      .card button {
+        margin-top: 4px;
+        background: var(--accent);
+        color: var(--text-dark);
+        border-radius: 999px;
+        border: none;
+        padding: 7px 14px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .card button:hover {
+        background: var(--accent-dark);
+      }
+
+      pre {
+        background: #111416;
+        color: #e9edf3;
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        max-height: 220px;
+        overflow: auto;
+        margin-top: 6px;
+      }
+
+      .row-inline {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .status-bar {
+        margin-top: 24px;
+        font-size: 0.78rem;
+        color: #d8d1be;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .status-pill {
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+      }
+
+      .status-pill.error {
+        border-color: var(--danger);
+        color: #ffd6d6;
+      }
+
+      .mini-label {
+        font-size: 0.75rem;
+        opacity: 0.9;
+      }
+
+      @media (max-width: 768px) {
+        main {
+          padding: 18px 16px 32px;
+        }
+
+        header {
+          padding: 14px 16px;
+        }
+
+        .hero {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .hero-graphic {
+          order: -1;
+        }
+
+        .plane-card {
+          width: 220px;
+          height: 200px;
+        }
       }
     </style>
   </head>
+
   <body>
-    <h1>Sandbox API – Isla Transfers</h1>
-    <div class="row">
-      <div class="card">
-        <h2>Health</h2>
-        <button id="btnHealth">GET /api/health</button>
-        <pre id="outHealth"></pre>
+    <header>
+      <div class="brand">Isla Transfers · Sandbox API</div>
+      <div class="env-badge">
+        Backend:
+        <span id="envBase"></span>
       </div>
-      <div class="card">
-        <h2>Listar reservas</h2>
-        <button id="btnList">GET /api/reservas</button>
-        <pre id="outList"></pre>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="hero-title">Traslados aeropuerto–hotel<br />sin complicaciones</div>
+          <div class="hero-subtitle">Sandbox de pruebas del backend</div>
+          <p class="hero-text">
+            Usa este panel para probar el <strong>login</strong>, la
+            <strong>creación de reservas</strong> (incluida la regla de 48h) y
+            las consultas básicas sin depender todavía del front en React.
+          </p>
+          <div class="hero-buttons">
+            <button class="btn-primary" id="btnPingAll">
+              Probar todo rápido
+            </button>
+            <button class="btn-secondary" id="btnClearAll">
+              Limpiar salidas
+            </button>
+          </div>
+        </div>
+        <div class="hero-graphic">
+          <div class="plane-card">
+            <div class="plane-cloud"></div>
+            <div class="plane-icon"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Parámetros base -->
+      <section style="margin-bottom: 16px">
+        <label class="mini-label"
+          >Base URL backend (déjalo vacío para usar
+          <code>location.origin</code>)</label
+        >
+        <input
+          id="baseUrlInput"
+          placeholder="http://localhost:8080 (opcional)"
+        />
+      </section>
+
+      <section class="grid">
+        <!-- Health -->
+        <article class="card alt">
+          <h2>Health check</h2>
+          <small>Comprueba conexión con la base de datos</small>
+          <button id="btnHealth">GET /api/health</button>
+          <pre id="outHealth">// Esperando petición…</pre>
+        </article>
+
+        <!-- Login -->
+        <article class="card">
+          <h2>Login</h2>
+          <small>Admin, hotel o usuario particular</small>
+          <label for="email">Email / usuario</label>
+          <input
+            id="email"
+            type="email"
+            placeholder="admin@islatransfers.com, hotel@demo.com, user@demo.com…"
+          />
+          <label for="pass">Contraseña</label>
+          <input id="pass" type="password" placeholder="••••••••" />
+          <button id="btnLogin">POST /api/login</button>
+          <pre id="outLogin">// Respuesta del login</pre>
+        </article>
+
+        <!-- Listar reservas -->
+        <article class="card">
+          <h2>Listar reservas</h2>
+          <small>Últimas reservas registradas en la BD</small>
+          <button id="btnList">GET /api/reservas</button>
+          <pre id="outList">// Lista de reservas</pre>
+        </article>
+
+        <!-- Crear reserva -->
+        <article class="card">
+          <h2>Crear reserva</h2>
+          <small>
+            Usa IDs reales de hotel / destino / viajero / vehículo.
+          </small>
+
+          <div class="row-inline">
+            <div>
+              <label for="role">Role</label>
+              <select id="role">
+                <option value="admin">admin</option>
+                <option value="user">user</option>
+                <option value="hotel">hotel</option>
+              </select>
+            </div>
+            <div>
+              <label for="tipo">Tipo de reserva</label>
+              <select id="tipo">
+                <option value="IDA">IDA (aeropuerto → hotel)</option>
+                <option value="VUELTA">VUELTA (hotel → aeropuerto)</option>
+                <option value="IDA_VUELTA">IDA_VUELTA</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row-inline">
+            <div>
+              <label for="idHotel">ID hotel</label>
+              <input id="idHotel" type="number" value="2" />
+            </div>
+            <div>
+              <label for="idDestino">ID destino</label>
+              <input id="idDestino" type="number" value="2" />
+            </div>
+          </div>
+
+          <div class="row-inline">
+            <div>
+              <label for="idViajero">ID viajero</label>
+              <input id="idViajero" type="number" value="3" />
+            </div>
+            <div>
+              <label for="idVehiculo">ID vehículo</label>
+              <input id="idVehiculo" type="number" value="1" />
+            </div>
+          </div>
+
+          <div class="row-inline">
+            <div>
+              <label for="numViajeros">Nº viajeros</label>
+              <input id="numViajeros" type="number" value="2" />
+            </div>
+            <div>
+              <label for="fechaEntrada">Fecha entrada (IDA)</label>
+              <input id="fechaEntrada" type="date" />
+            </div>
+          </div>
+
+          <div class="row-inline">
+            <div>
+              <label for="horaEntrada">Hora entrada (IDA)</label>
+              <input id="horaEntrada" type="time" />
+            </div>
+            <div>
+              <label for="vueloEntrada">Nº vuelo entrada</label>
+              <input id="vueloEntrada" placeholder="IB1234" />
+            </div>
+          </div>
+
+          <label for="origenEntrada">Origen vuelo entrada</label>
+          <input id="origenEntrada" placeholder="MAD, BCN…" />
+
+          <div class="row-inline">
+            <div>
+              <label for="fechaSalida">Fecha vuelo salida (VUELTA)</label>
+              <input id="fechaSalida" type="date" />
+            </div>
+            <div>
+              <label for="horaSalida">Hora vuelo salida (VUELTA)</label>
+              <input id="horaSalida" type="time" />
+            </div>
+          </div>
+
+          <button id="btnCreate">POST /api/reservas</button>
+          <pre id="outCreate">// Resultado de la creación</pre>
+        </article>
+      </section>
+
+      <div class="status-bar">
+        <span class="status-pill">
+          Última petición: <span id="lastMethod">–</span>
+          <span id="lastPath"></span>
+        </span>
+        <span class="status-pill" id="lastStatusPill">
+          Estado: <span id="lastStatus">–</span>
+        </span>
+        <span class="mini-label"
+          >Truco: con <strong>role = user</strong> y fechas &lt; 48h deberías ver
+          la validación de la regla de 48 horas.</span
+        >
       </div>
-      <div class="card">
-        <h2>Crear reserva</h2>
-        <label>Fecha</label><input id="fecha" type="date" />
-        <button id="btnCreate">POST /api/reservas</button>
-        <pre id="outCreate"></pre>
-      </div>
-      <div class="card">
-        <h2>Login</h2>
-        <label>Email</label
-        ><input id="email" type="email" placeholder="admin@..." />
-        <label>Contraseña</label
-        ><input id="pass" type="password" placeholder="••••••••" />
-        <button id="btnLogin">POST /api/login</button>
-        <pre id="outLogin"></pre>
-      </div>
-    </div>
+    </main>
+
     <script>
-      const base = location.origin;
-      async function jget(p) {
-        const r = await fetch(base + p, { credentials: "include" });
-        return r.json();
+      const envBaseSpan = document.getElementById("envBase");
+      const baseInput = document.getElementById("baseUrlInput");
+      const lastMethod = document.getElementById("lastMethod");
+      const lastPath = document.getElementById("lastPath");
+      const lastStatus = document.getElementById("lastStatus");
+      const lastStatusPill = document.getElementById("lastStatusPill");
+
+      function getBaseUrl() {
+        const manual = baseInput.value.trim();
+        return manual || window.location.origin;
       }
-      async function jpost(p, d) {
-        const r = await fetch(base + p, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(d || {}),
+
+      envBaseSpan.textContent = getBaseUrl();
+
+      baseInput.addEventListener("input", () => {
+        envBaseSpan.textContent = getBaseUrl();
+      });
+
+      async function apiRequest(method, path, data) {
+        const url = getBaseUrl() + path;
+        lastMethod.textContent = method;
+        lastPath.textContent = " " + path;
+        lastStatus.textContent = "…";
+        lastStatusPill.classList.remove("error");
+
+        try {
+          const opts = {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          };
+          if (data && method !== "GET") {
+            opts.body = JSON.stringify(data);
+          }
+
+          const resp = await fetch(url, opts);
+          lastStatus.textContent = resp.status + " " + resp.statusText;
+          if (!resp.ok) {
+            lastStatusPill.classList.add("error");
+          }
+
+          const text = await resp.text();
+          try {
+            return JSON.parse(text);
+          } catch {
+            return { raw: text };
+          }
+        } catch (err) {
+          lastStatus.textContent = "ERROR";
+          lastStatusPill.classList.add("error");
+          return { error: String(err) };
+        }
+      }
+
+      // Botones
+      const outHealth = document.getElementById("outHealth");
+      const outLogin = document.getElementById("outLogin");
+      const outList = document.getElementById("outList");
+      const outCreate = document.getElementById("outCreate");
+
+      document.getElementById("btnHealth").onclick = async () => {
+        const res = await apiRequest("GET", "/api/health");
+        outHealth.textContent = JSON.stringify(res, null, 2);
+      };
+
+      document.getElementById("btnLogin").onclick = async () => {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("pass").value;
+        const res = await apiRequest("POST", "/api/login", {
+          email,
+          password,
         });
-        return r.json();
-      }
-      btnHealth.onclick = async () => {
-        outHealth.textContent = JSON.stringify(
-          await jget("/api/health"),
-          null,
-          2
-        );
+        outLogin.textContent = JSON.stringify(res, null, 2);
       };
-      btnList.onclick = async () => {
-        outList.textContent = JSON.stringify(
-          await jget("/api/reservas"),
-          null,
-          2
-        );
+
+      document.getElementById("btnList").onclick = async () => {
+        const res = await apiRequest("GET", "/api/reservas");
+        outList.textContent = JSON.stringify(res, null, 2);
       };
-      btnCreate.onclick = async () => {
-        const f = fecha.value || new Date().toISOString().slice(0, 10);
-        outCreate.textContent = JSON.stringify(
-          await jpost("/api/reservas", { fecha_trayecto: f }),
-          null,
-          2
-        );
+
+      document.getElementById("btnCreate").onclick = async () => {
+        const payload = {
+          role: document.getElementById("role").value,
+          tipo: document.getElementById("tipo").value,
+          id_hotel: Number(document.getElementById("idHotel").value),
+          id_destino: Number(document.getElementById("idDestino").value),
+          id_viajero: Number(document.getElementById("idViajero").value),
+          id_vehiculo: Number(document.getElementById("idVehiculo").value),
+          num_viajeros: Number(document.getElementById("numViajeros").value),
+          fecha_entrada:
+            document.getElementById("fechaEntrada").value || null,
+          hora_entrada: document.getElementById("horaEntrada").value || null,
+          numero_vuelo_entrada:
+            document.getElementById("vueloEntrada").value || null,
+          origen_vuelo_entrada:
+            document.getElementById("origenEntrada").value || null,
+          fecha_vuelo_salida:
+            document.getElementById("fechaSalida").value || null,
+          hora_vuelo_salida:
+            document.getElementById("horaSalida").value || null,
+        };
+
+        const res = await apiRequest("POST", "/api/reservas", payload);
+        outCreate.textContent = JSON.stringify(res, null, 2);
       };
-      btnLogin.onclick = async () => {
-        outLogin.textContent = JSON.stringify(
-          await jpost("/api/login", {
-            email: email.value,
-            password: pass.value,
-          }),
-          null,
-          2
-        );
+
+      document.getElementById("btnPingAll").onclick = async () => {
+        outHealth.textContent = "// Probando /api/health…";
+        outLogin.textContent = "// Probando /api/login…";
+        outList.textContent = "// Probando /api/reservas…";
+
+        await document.getElementById("btnHealth").onclick();
+        await document.getElementById("btnList").onclick();
+      };
+
+      document.getElementById("btnClearAll").onclick = () => {
+        outHealth.textContent = "// Esperando petición…";
+        outLogin.textContent = "// Respuesta del login";
+        outList.textContent = "// Lista de reservas";
+        outCreate.textContent = "// Resultado de la creación";
+        lastMethod.textContent = "–";
+        lastPath.textContent = "";
+        lastStatus.textContent = "–";
+        lastStatusPill.classList.remove("error");
       };
     </script>
   </body>
