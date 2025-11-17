@@ -5,7 +5,6 @@
 
 export function mapReservaToBackend(form, tipoForzado = null) {
 
-  // 1. Tipo
   let tipo = tipoForzado;
   if (!tipo) {
     if (form.fechaLlegada && !form.fechaVuelta) tipo = "aeropuerto-hotel";
@@ -14,12 +13,11 @@ export function mapReservaToBackend(form, tipoForzado = null) {
     else tipo = "desconocido";
   }
 
-  // 2. Mapeo especial para IDA-VUELTA
   if (tipo === "ida-vuelta") {
     return {
       tipo,
 
-      // 🟦 IDA
+      // IDA
       fechaLlegada: form.fechaLlegada || "",
       horaLlegada: form.horaLlegada || "",
       vueloLlegada: form.vueloLlegada || "",
@@ -27,7 +25,7 @@ export function mapReservaToBackend(form, tipoForzado = null) {
       horaRecogidaAeropuerto: form.horaRecogida || "",
       hotelDestino: form.hotelDestino || "",
 
-      // 🟩 VUELTA
+      // VUELTA
       fechaVuelta: form.fechaVuelta || "",
       horaVueloSalida: form.horaVueloSalida || "",
       vueloSalida: form.vueloSalida || "",
@@ -35,7 +33,7 @@ export function mapReservaToBackend(form, tipoForzado = null) {
       horaRecogidaHotel: form.horaRecogida || "",
       hotelRecogida: form.hotelRecogida || "",
 
-      // 🟦 PASAJERO
+      // PASAJERO
       viajeros: form.viajeros || 1,
       nombre: form.nombre || "",
       email: form.email || "",
@@ -43,7 +41,6 @@ export function mapReservaToBackend(form, tipoForzado = null) {
     };
   }
 
-  // 3. Otros tipos → funcionan como ya tenías
   let origen = "";
 
   if (tipo === "aeropuerto-hotel") {
