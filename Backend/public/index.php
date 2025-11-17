@@ -38,6 +38,13 @@ $router->get('/api/hotel/{id}/reservas', 'HotelController@reservas'); // reserva
 $router->get('/api/hotel/{id}/calendario', 'CalendarController@hotelCalendar'); // Calendario Hotel - Sin filtaros día/semana/mes
 $router->get('/api/hotel/{id}/calendario-view', 'CalendarController@hotelCalendarView'); // Celendario Hotel - Con filtros día/semana/mes
 
+// ----------------- USER ------------------
+$router->get('/api/user/{id}/dashboard', 'UserController@dashboard');
+$router->get('/api/user/{id}/reservas', 'UserController@reservas');
+$router->get('/api/user/{id}/calendario', 'UserController@calendario');
+$router->get('/api/user/{id}/calendario-view', 'UserController@calendarioView');
+
+
 // ----------------- CALENDAR ----------------
 $router->get('/api/calendar/events', 'CalendarController@events'); // eventos del calendario
 
