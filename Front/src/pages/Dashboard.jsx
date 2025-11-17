@@ -17,48 +17,46 @@ const Dashboard = () => {
 
   if (!userType) return null
 
-  // ------ PLACEHOLDER DE RESERVAS ------
+  // ------ PLACEHOLDERS ------
   const reservasEjemplo = {
-    admin: 34,         // reservas del mes
-    particular: 12,    // reservas del usuario
-    empresa: 21,       // traslados al hotel este mes
+    admin: 34,         
+    particular: 12,    
+    empresa: 21,      
   }
 
   const adminStatsEjemplo = {
-  reservasTotales: 34,
-  viajerosTotales: 89,
-  hotelesRegistrados: 12,
-}
+    reservasTotales: 34,
+    viajerosTotales: 89,
+    hotelesRegistrados: 12,
+  }
 
   const dashboardContent = {
     admin: (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20">
-    
-    {/* RESERVAS */}
-    <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
-      <h2 className="text-2xl font-semibold mb-4">Reservas totales</h2>
-      <p className="text-5xl font-bold text-green-600">{adminStatsEjemplo.reservasTotales}</p>
-      <p className="text-sm text-gray-500 mt-2">Reservas registradas este mes.</p>
-    </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10! p-6!">
 
-    {/* VIAJEROS */}
-    <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
-      <h2 className="text-2xl font-semibold mb-4">Viajeros totales</h2>
-      <p className="text-5xl font-bold text-blue-600">{adminStatsEjemplo.viajerosTotales}</p>
-      <p className="text-sm text-gray-500 mt-2">Número total de pasajeros transportados.</p>
-    </div>
+        {/* RESERVAS */}
+        <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
+          <h2 className="text-2xl font-semibold mb-4">Reservas totales</h2>
+          <p className="text-5xl font-bold text-green-600">{adminStatsEjemplo.reservasTotales}</p>
+          <p className="text-sm text-gray-500 mt-2">Reservas registradas este mes.</p>
+        </div>
 
-    {/* HOTELES */}
-    <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
-      <h2 className="text-2xl font-semibold mb-4">Hoteles registrados</h2>
-      <p className="text-5xl font-bold text-purple-600">{adminStatsEjemplo.hotelesRegistrados}</p>
-      <p className="text-sm text-gray-500 mt-2">Clientes de tipo empresa.</p>
-    </div>
+        {/* VIAJEROS */}
+        <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
+          <h2 className="text-2xl font-semibold mb-4">Viajeros totales</h2>
+          <p className="text-5xl font-bold text-blue-600">{adminStatsEjemplo.viajerosTotales}</p>
+          <p className="text-sm text-gray-500 mt-2">Número total de pasajeros transportados.</p>
+        </div>
 
-  </div>
-)
+        {/* HOTELES */}
+        <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
+          <h2 className="text-2xl font-semibold mb-4">Hoteles registrados</h2>
+          <p className="text-5xl font-bold text-purple-600">{adminStatsEjemplo.hotelesRegistrados}</p>
+          <p className="text-sm text-gray-500 mt-2">Clientes de tipo empresa.</p>
+        </div>
 
-
+      </div>
+    ),
     particular: (
       <div className="flex justify-center mt-20!">
         <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
