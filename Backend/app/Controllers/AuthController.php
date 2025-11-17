@@ -27,7 +27,7 @@ class AuthController extends Controller
                 'role'=> 'admin',
                 'email'=> $admin['email_admin'],
                 'iat'=> time(),
-                'exp'=> time()*(60*60*2),
+                'exp'=> time()+ 60*60*2,
             ];
             $token = JWT::encode($payload); // aqui el token recibe el array que se construyó
             // Respuesta JSON
@@ -53,7 +53,7 @@ class AuthController extends Controller
                 'role'=> 'hotel',
                 'email'=> $hotel['email_hotel'],
                 'iat'=> time(),
-                'exp'=> time()*(60*60*2),
+                'exp'=> time()+ 60*60*2,
             ];
             $token = JWT::encode($payload); // aqui el token recibe el array que se construyó
             // Respuesta JSON
@@ -77,7 +77,7 @@ class AuthController extends Controller
                 'role'=> 'user',
                 'email'=> $user['email_viajero'],
                 'iat'=> time(),
-                'exp'=> time()*(60*60*2),
+                'exp'=> time()+ 60*60*2,
             ];
             $token = JWT::encode($payload); // aqui el token recibe el array que se construyó
             // Respuesta JSON

@@ -8,6 +8,20 @@
     "prices": "Precios",
     "contact": "Contacto"
   },
+  "menu": {
+    "profile": "Perfil",
+    "billing": "Facturación",
+    "notifications": "Notificaciones",
+    "logout": "Cerrar sesión"
+  },
+  "profile": {
+    "title": "Perfil de Usuario",
+    "info": "Información Personal",
+    "name": "Nombre de usuario",
+    "email": "Correo electrónico",
+    "type": "Tipo de usuario",
+    "save": "Guardar Cambios"
+  },
   "hero": {
     "title": "Traslados Aeropuerto-Hotel",
     "subtitle": "Sin Complicaciones",
