@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sandbox API – Isla Transfers</title>
+    <style>
+      body {
+        font-family: system-ui, Arial;
+        margin: 20px;
+        max-width: 900px;
+      }
+      h2 {
+        margin-top: 32px;
+      }
+      pre {
+        background: #0b0b0b;
+        color: #eaeaea;
+        padding: 12px;
+        border-radius: 8px;
+        overflow: auto;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 12px;
+        flex: 1;
+        min-width: 260px;
+      }
+      button {
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #444;
+      }
+      input {
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #bbb;
+        width: 100%;
+      }
+      label {
+        font-size: 0.9rem;
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Sandbox API – Isla Transfers</h1>
+    <div class="row">
+      <div class="card">
+        <h2>Health</h2>
+        <button id="btnHealth">GET /api/health</button>
+        <pre id="outHealth"></pre>
+      </div>
+      <div class="card">
+        <h2>Listar reservas</h2>
+        <button id="btnList">GET /api/reservas</button>
+        <pre id="outList"></pre>
+      </div>
+      <div class="card">
+        <h2>Crear reserva</h2>
+        <label>Fecha</label><input id="fecha" type="date" />
+        <button id="btnCreate">POST /api/reservas</button>
+        <pre id="outCreate"></pre>
+      </div>
+      <div class="card">
+        <h2>Login</h2>
+        <label>Email</label
+        ><input id="email" type="email" placeholder="admin@..." />
+        <label>Contraseña</label
+        ><input id="pass" type="password" placeholder="••••••••" />
+        <button id="btnLogin">POST /api/login</button>
+        <pre id="outLogin"></pre>
+      </div>
+    </div>
+    <script>
+      const base = location.origin;
+      async function jget(p) {
+        const r = await fetch(base + p, { credentials: "include" });
+        return r.json();
+      }
+      async function jpost(p, d) {
+        const r = await fetch(base + p, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(d || {}),
+        });
+        return r.json();
+      }
+      btnHealth.onclick = async () => {
+        outHealth.textContent = JSON.stringify(
+          await jget("/api/health"),
+          null,
+          2
+        );
+      };
+      btnList.onclick = async () => {
+        outList.textContent = JSON.stringify(
+          await jget("/api/reservas"),
+          null,
+          2
+        );
+      };
+      btnCreate.onclick = async () => {
+        const f = fecha.value || new Date().toISOString().slice(0, 10);
+        outCreate.textContent = JSON.stringify(
+          await jpost("/api/reservas", { fecha_trayecto: f }),
+          null,
+          2
+        );
+      };
+      btnLogin.onclick = async () => {
+        outLogin.textContent = JSON.stringify(
+          await jpost("/api/login", {
+            email: email.value,
+            password: pass.value,
+          }),
+          null,
+          2
+        );
+      };
+    </script>
+  </body>
+</html>
