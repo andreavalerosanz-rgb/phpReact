@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,51 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
+import { apiCrearReserva } from "@/api"
+import { mapReservaToBackend } from "@/backendMapper";
 
 export default function FormularioIdaVuelta({ onCancel }) {
+
+    const [vehiculos, setVehiculos] = useState([]);
+
+    useEffect(() => {
+        async function cargarVehiculos() {
+            try {
+                const mockVehiculos = [
+                    { id: 1, marca: "Toyota", modelo: "Corolla" },
+                    { id: 2, marca: "Mercedes", modelo: "Vito" }
+                ];
+
+                setVehiculos(mockVehiculos);
+
+                // BACKEND READY:
+                // const res = await fetch("/api/vehiculos");
+                // const data = await res.json();
+                // setVehiculos(data);
+
+            } catch (err) {
+                console.error("Error cargando vehículos:", err);
+            }
+        }
+        cargarVehiculos();
+    }, []);
+
+
+    async function enviarReserva() {
+        try {
+            const mapped = mapReservaToBackend(form, "ida-vuelta")
+            console.log("JSON generado:", mapped)
+
+
+            // No hay backend → confirmamos directamente
+            setReservaConfirmada(true)
+
+        } catch (err) {
+            console.error(err)
+            alert("Error al procesar la reserva")
+        }
+    }
+
 
     const hoy = new Date().toISOString().split("T")[0];
     const [step, setStep] = useState(1);
@@ -285,13 +328,13 @@ export default function FormularioIdaVuelta({ onCancel }) {
     const renderPaso3 = () => (
         <>
             <h3 className="text-base! font-bold! mb-4 text-(--dark-slate-gray)">
-                Datos del pasajero
+                Datos del pasajero y selección de vehículo
             </h3>
 
             <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
 
                 <Field>
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2">
                         <FieldLabel>Número de viajeros</FieldLabel>
 
                         <Tooltip>
@@ -305,7 +348,7 @@ export default function FormularioIdaVuelta({ onCancel }) {
                             </TooltipTrigger>
 
                             <TooltipContent className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2">
-                                Asignaremos un tipo de vehículo o varios según el número de viajeros.
+                                Asignaremos uno o varios vehículos del modelo que escojas según el número de viajeros.
                             </TooltipContent>
                         </Tooltip>
                     </div>
@@ -348,6 +391,27 @@ export default function FormularioIdaVuelta({ onCancel }) {
                         onChange={(e) => setForm({ ...form, telefono: e.target.value })}
                     />
                 </Field>
+
+                <Field>
+                    <FieldLabel>Vehículo</FieldLabel>
+                    <Select
+                        value={form.vehiculo}
+                        onValueChange={(v) => setForm({ ...form, vehiculo: v })}
+                    >
+                        <SelectTrigger className="h-11 rounded-lg!">
+                            <SelectValue placeholder="Selecciona un vehículo" />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                            {vehiculos.map((v) => (
+                                <SelectItem key={v.id} value={String(v.id)}>
+                                    {v.marca} {v.modelo}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </Field>
+
             </FieldGroup>
             <div className="flex justify-center mt-15! translate-x-5">
                 <div className="flex gap-4">
@@ -361,7 +425,7 @@ export default function FormularioIdaVuelta({ onCancel }) {
 
                     <Button
                         className="rounded-lg! bg-(--dark-slate-gray) hover:bg-(--ebony)! text-(--ivory)"
-                        onClick={() => setReservaConfirmada(true)}
+                        onClick={enviarReserva}
                     >
                         Confirmar reserva
                     </Button>
@@ -372,36 +436,36 @@ export default function FormularioIdaVuelta({ onCancel }) {
 
 
     return (
-    <Card className="w-full max-w-3xl mx-auto">
-        <div className="md:p-6!">
+        <Card className="w-full max-w-3xl mx-auto">
+            <div className="md:p-6!">
 
-            {!reservaConfirmada && (
-                <CardHeader className="text-center mb-6">
-                    <CardTitle className="text-2xl">Ida y Vuelta</CardTitle>
-                </CardHeader>
-            )}
-
-            <CardContent>
-
-                {reservaConfirmada ? (
-                    <ConfirmacionReserva
-                        onBack={() => {
-                            setReservaConfirmada(false);
-                            onCancel();
-                        }}
-                    />
-                ) : (
-                    <>
-                        {step === 1 && renderPaso1()}
-                        {step === 2 && renderPaso2()}
-                        {step === 3 && renderPaso3()}
-                    </>
+                {!reservaConfirmada && (
+                    <CardHeader className="text-center mb-6">
+                        <CardTitle className="text-2xl">Ida y Vuelta</CardTitle>
+                    </CardHeader>
                 )}
 
-            </CardContent>
+                <CardContent>
 
-        </div>
-    </Card>
-);
+                    {reservaConfirmada ? (
+                        <ConfirmacionReserva
+                            onBack={() => {
+                                setReservaConfirmada(false);
+                                onCancel();
+                            }}
+                        />
+                    ) : (
+                        <>
+                            {step === 1 && renderPaso1()}
+                            {step === 2 && renderPaso2()}
+                            {step === 3 && renderPaso3()}
+                        </>
+                    )}
+
+                </CardContent>
+
+            </div>
+        </Card>
+    );
 }
 

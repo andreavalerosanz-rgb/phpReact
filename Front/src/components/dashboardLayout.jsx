@@ -8,6 +8,7 @@ import {
   IconCalendar,
   IconFileDescription,
 } from "@tabler/icons-react"
+import { IconCar } from "@tabler/icons-react"
 
 const menus = {
   admin: [
@@ -15,6 +16,7 @@ const menus = {
     { title: "Reservas", url: "/reservas", icon: IconListDetails },
     { title: "Calendario", url: "/calendario", icon: IconCalendar },
     { title: "Nueva Reserva", url: "/reservas/nueva", icon: IconFileDescription },
+    { title: "Vehículos", url: "/vehiculos", icon: IconCar }, 
   ],
 
   particular: [

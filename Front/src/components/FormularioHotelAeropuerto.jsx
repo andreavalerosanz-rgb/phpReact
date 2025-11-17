@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,49 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
+import { apiCrearReserva } from "@/api"
+import { mapReservaToBackend } from "@/backendMapper";
 
 export default function FormularioHotelAeropuerto({ onCancel }) {
+
+    async function enviarReserva() {
+        try {
+            const mapped = mapReservaToBackend(form)
+            const token = localStorage.getItem("token")
+
+            console.log("JSON generado:", mapped)
+            setReservaConfirmada(true)
+            return
+
+
+        } catch (err) {
+            console.error(err)
+            alert("Error al procesar reserva")
+        }
+    }
+
+    const [vehiculos, setVehiculos] = useState([]);
+
+    useEffect(() => {
+        async function cargarVehiculos() {
+            try {
+                const mockVehiculos = [
+                    { id: 1, marca: "Toyota", modelo: "Corolla" },
+                    { id: 2, marca: "Mercedes", modelo: "Vito" }
+                ];
+                setVehiculos(mockVehiculos);
+
+                // BACKEND READY:
+                // const res = await fetch("/api/vehiculos");
+                // const data = await res.json();
+                // setVehiculos(data);
+            } catch (err) {
+                console.error("Error cargando vehículos:", err);
+            }
+        }
+        cargarVehiculos();
+    }, []);
+
 
     const [form, setForm] = useState({
         fechaVuelo: "",
@@ -141,6 +182,27 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                             </Field>
 
                             <Field>
+                                <FieldLabel>Vehículo</FieldLabel>
+                                <Select
+                                    value={form.vehiculo}
+                                    onValueChange={(v) => setForm({ ...form, vehiculo: v })}
+                                >
+                                    <SelectTrigger className="h-11 rounded-lg!">
+                                        <SelectValue placeholder="Selecciona un vehículo" />
+                                    </SelectTrigger>
+
+                                    <SelectContent>
+                                        {vehiculos.map((v) => (
+                                            <SelectItem key={v.id} value={String(v.id)}>
+                                                {v.marca} {v.modelo}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </Field>
+
+
+                            <Field>
                                 <div className="flex items-center gap-2">
                                     <FieldLabel className="m-0">Número de viajeros</FieldLabel>
                                     <Tooltip>
@@ -154,7 +216,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                             side="top"
                                             className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2"
                                         >
-                                            Asignaremos un vehículo adecuado.
+                                            Asignaremos uno o varios vehículos del modelo que escojas según el número de viajeros.
                                         </TooltipContent>
                                     </Tooltip>
                                 </div>
@@ -173,7 +235,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                             </Field>
 
                             <Field>
-                                <FieldLabel>Nombre completo</FieldLabel>
+                                <FieldLabel className="flex items-center h-[24px]">Nombre completo</FieldLabel>
                                 <Input
                                     value={form.nombre}
                                     onChange={(e) =>
@@ -203,23 +265,21 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     }
                                 />
                             </Field>
-
-                            <Field className="ml-3! justify-end">
-                                <div className="flex gap-4">
-                                    <Button variant="outline" className="!rounded-lg" onClick={onCancel}>
-                                        Cancelar
-                                    </Button>
-                                    <Button
-                                        className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
-                                        onClick={() => setReservaConfirmada(true)}
-                                    >
-                                        Confirmar Reserva
-                                    </Button>
-                                </div>
-                            </Field>
-
                         </FieldGroup>
                     )}
+
+                    <div className="w-full flex justify-end mt-8! gap-2">
+                        <Button variant="outline" className="!rounded-lg" onClick={onCancel}>
+                            Cancelar
+                        </Button>
+                        <Button
+                            className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
+                            onClick={enviarReserva}
+                        >
+                            Confirmar Reserva
+                        </Button>
+                    </div>
+
                 </CardContent>
 
             </div>

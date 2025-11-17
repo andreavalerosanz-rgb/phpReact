@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 export default function ConfirmacionReserva({ onBack }) {
     return (
         <div className="text-center py-12 px-4">
-            <h2 className="text-2xl font-bold text-(--dark-slate-gray) mb-4">
+            <h2 className="text-2xl font-bold text-(--dark-slate-gray) mt-4!">
                 ✔️ Reserva confirmada
             </h2>
 
@@ -12,7 +12,7 @@ export default function ConfirmacionReserva({ onBack }) {
             </p>
 
             <Button
-                className="rounded-lg! bg-(--dark-slate-gray) hover:bg-(--ebony)! text-(--ivory)"
+                className="rounded-lg! bg-(--dark-slate-gray) hover:bg-(--ebony)! text-(--ivory) mb-4!"
                 onClick={onBack}
             >
                 Volver al inicio

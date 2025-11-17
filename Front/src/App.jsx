@@ -12,6 +12,7 @@ import Calendario from "@/pages/Calendario"
 import DetalleReservaCalendar from './pages/DetalleReservaCalendar'
 import Servicios from './pages/Servicios'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import Vehiculos from '@/pages/Vehiculos.jsx'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/reservas/nueva" element={<NuevaReservaDashboard />} />
           <Route path="/reservas/:id" element={<DetalleReserva />} />
           <Route path="/calendario/reserva/:id" element={<DetalleReservaCalendar />} />
+          <Route path="/vehiculos" element={<Vehiculos />} />
         </Routes>
       </div>
     </Router>
