@@ -21,6 +21,7 @@ import {
   SelectItem,
   SelectLabel,
 } from "@/components/ui/select"
+import { useNavigate } from "react-router"
 
 const handlesubmit = (e) => {
   // Aquí iría la lógica para manejar el envío del formulario
@@ -30,6 +31,39 @@ const handlesubmit = (e) => {
 export function SignupForm({
   ...props
 }) {
+  const navigate = useNavigate()
+
+  const handleRegister = async (e) => {
+    e.preventDefault()
+    
+    const form = e.target
+    const formData = new FormData(form)
+    
+    const dataFormInput = Object.fromEntries(formData.entries())
+
+    const dataToSend = {
+      ...dataFormInput,
+    }
+ 
+    console.log(JSON.stringify(dataToSend, null, 2));
+    
+
+
+    const response = await fetch("http://localhost:8000/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dataToSend),
+    })
+
+    if (!response.ok) {
+      alert("Error al registrar")
+      return
+    }
+
+    navigate("/login")
+    
+  }
+
   return (
     <Card {...props}>
       <div className="p-4">
@@ -40,11 +74,11 @@ export function SignupForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handlesubmit()}>
+        <form onSubmit={handleRegister}>
           <FieldGroup>
             <Field className="mt-4">
-              <FieldLabel htmlFor="tipo-cliente">Tipo de cliente</FieldLabel>
-              <Select id="tipo-cliente" defaultValue="">
+              <FieldLabel htmlFor="tipoCliente">Tipo de cliente</FieldLabel>
+              <Select id="tipo-cliente" name="tipoCliente" defaultValue="">
                 <SelectTrigger className="rounded-lg!">
                   <SelectValue placeholder="Selecciona el tipo de cliente" />
                 </SelectTrigger>
@@ -56,24 +90,24 @@ export function SignupForm({
             </Field>
             <Field>
               <FieldLabel htmlFor="name">Nombre</FieldLabel>
-              <Input id="name" type="text" placeholder="Nombre y apellidos" required />
+              <Input id="name" name="name" type="text" placeholder="Nombre y apellidos" required />
             </Field>
             <Field>
               <FieldLabel htmlFor="email">Email</FieldLabel>
-              <Input id="email" type="email" placeholder="email@ejemplo.com" required />
+              <Input id="email" name="email" type="email" placeholder="email@ejemplo.com" required />
               <FieldDescription className="mb-0">
                 Usaremos tu correo para contactar contigo y enviarte las confirmaciones e información de tus reservas.
               </FieldDescription>
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-              <Input id="password" type="password" required />
+              <Input id="password" name="password" type="password" required />
             </Field>
             <Field>
               <FieldLabel htmlFor="confirm-password">
                 Confirmar contraseña
               </FieldLabel>
-              <Input id="confirm-password" type="password" required />
+              <Input id="confirm-password" name="confirm-password" type="password" required />
             </Field>
             <FieldGroup>
               <Field>

@@ -27,31 +27,34 @@ export function LoginForm({ className, ...props }) {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault() // evita recargar la página
-    console.log("Datos del formulario:", formData)
-    /*try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      })
+  e.preventDefault()
 
-      if (!response.ok) throw new Error("Error en el login")
+  try {
+    const response = await fetch("http://localhost:8000/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    })
 
-      const data = await response.json()
-      console.log("Login exitoso:", data)
-      // Aquí podrías guardar token, redirigir, etc.
-      localStorage.setItem("UserData", {
-        name: data.name,
-        email: data.email,
-      })
+    if (!response.ok) throw new Error("Credenciales inválidas")
 
-    } catch (error) {
-      console.error(error)
-    }*/
+    const data = await response.json()
+
+    // Ejemplo de lo que devuelve el back:
+    // { token: "...", user: { name: "", email: "", type: "hotel" } }
+
+    localStorage.setItem("token", data.token)
+    localStorage.setItem("userData", JSON.stringify(data.user))
+    localStorage.setItem("userType", data.user.type)
+
+    // Redirigir al dashboard
+    window.location.href = "/dashboard"
+
+  } catch (err) {
+    console.error(err)
+    alert("No se pudo iniciar sesión")
   }
+}
 
   return (
     <div className={cn("", className)} {...props}>

@@ -1,0 +1,191 @@
+import { useState } from "react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+    Select,
+    SelectTrigger,
+    SelectValue,
+    SelectContent,
+    SelectItem
+} from "@/components/ui/select";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger
+} from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
+import ConfirmacionReserva from "./ConfirmacionReserva";
+
+export default function FormularioAeropuertoHotel({ onCancel }) {
+    const [form, setForm] = useState({
+        fechaLlegada: "",
+        horaLlegada: "",
+        vuelo: "",
+        aeropuertoOrigen: "",
+        hotel: "",
+        viajeros: "",
+        nombre: "",
+        email: "",
+        telefono: ""
+    });
+
+    const hoy = new Date().toISOString().split("T")[0];
+    const [errorFecha, setErrorFecha] = useState("");
+    const [reservaConfirmada, setReservaConfirmada] = useState(false);
+
+    const hotelesEjemplo = [
+        "Riu Palace",
+        "Bahía Príncipe Fantasía",
+        "Iberostar Selection",
+        "Hard Rock Hotel",
+        "Barceló Bávaro Palace",
+        "Meliá Caribe Beach",
+    ];
+
+    return (
+        <Card className="w-full max-w-3xl mx-auto">
+            <div className="md:p-6!">
+                {!reservaConfirmada && (
+                    <CardHeader className="text-center mb-6">
+                        <CardTitle className="text-2xl">Aeropuerto → Hotel</CardTitle>
+                        <CardDescription className="p-2 mb-3">
+                            Introduce los detalles de tu llegada
+                        </CardDescription>
+                    </CardHeader>
+                )}
+
+                <CardContent>
+                    {reservaConfirmada ? (
+                        <ConfirmacionReserva
+                            onBack={() => {
+                                setReservaConfirmada(false);
+                                onCancel();
+                            }}
+                        />
+                    ) : (
+                        <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
+
+                            <Field>
+                                <FieldLabel>Fecha de llegada</FieldLabel>
+                                <Input
+                                    type="date"
+                                    min={hoy}
+                                    value={form.fechaLlegada}
+                                    onChange={(e) => {
+                                        const valor = e.target.value;
+                                        if (valor < hoy) {
+                                            setErrorFecha("⚠️ La fecha no puede ser anterior a hoy.");
+                                            return setForm({ ...form, fechaLlegada: "" });
+                                        }
+                                        setErrorFecha("");
+                                        setForm({ ...form, fechaLlegada: valor });
+                                    }}
+                                />
+                                {errorFecha && <p className="text-sm text-red-600 mt-1">{errorFecha}</p>}
+                            </Field>
+
+                            <Field>
+                                <FieldLabel>Hora de llegada</FieldLabel>
+                                <Input type="time" />
+                            </Field>
+
+                            <Field>
+                                <FieldLabel>Número de vuelo</FieldLabel>
+                                <Input placeholder="Ej. IB1234" />
+                            </Field>
+
+                            <Field>
+                                <FieldLabel>Aeropuerto de origen</FieldLabel>
+                                <Input placeholder="Ej. Madrid-Barajas (MAD)" />
+                            </Field>
+
+                            <Field>
+                                <FieldLabel>Hotel de destino</FieldLabel>
+                                <Select
+                                    value={form.hotel}
+                                    onValueChange={(v) => setForm({ ...form, hotel: v })}
+                                >
+                                    <SelectTrigger className="h-11 rounded-lg!">
+                                        <SelectValue placeholder="Selecciona un hotel" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {hotelesEjemplo.map((hotel) => (
+                                            <SelectItem key={hotel} value={hotel}>
+                                                {hotel}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </Field>
+
+                            <Field>
+                                <div className="flex items-center gap-2">
+                                    <FieldLabel className="m-0">Número de viajeros</FieldLabel>
+
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button className="size-6 flex items-center justify-center rounded-full">
+                                                <Info className="size-4" />
+                                            </button>
+                                        </TooltipTrigger>
+
+                                        <TooltipContent
+                                            side="top"
+                                            className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2"
+                                        >
+                                            Asignaremos un vehículo adecuado según viajeros.
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </div>
+
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={form.viajeros}
+                                    onChange={(e) =>
+                                        setForm({
+                                            ...form,
+                                            viajeros: Math.max(1, Number(e.target.value))
+                                        })
+                                    }
+                                />
+                            </Field>
+
+                            <Field>
+                                <FieldLabel>Nombre completo</FieldLabel>
+                                <Input />
+                            </Field>
+
+                            <Field>
+                                <FieldLabel>Email</FieldLabel>
+                                <Input type="email" />
+                            </Field>
+
+                            <Field>
+                                <FieldLabel>Teléfono</FieldLabel>
+                                <Input type="tel" />
+                            </Field>
+
+                            <Field className="ml-3! justify-end">
+                                <div className="flex gap-4">
+                                    <Button variant="outline" className="!rounded-lg" onClick={onCancel}>
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
+                                        onClick={() => setReservaConfirmada(true)}
+                                    >
+                                        Confirmar Reserva
+                                    </Button>
+                                </div>
+                            </Field>
+
+                        </FieldGroup>
+                    )}
+                </CardContent>
+            </div>
+        </Card>
+    );
+}

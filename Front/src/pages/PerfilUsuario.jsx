@@ -70,8 +70,9 @@ const PerfilUsuario = () => {
                   htmlFor="name"
                   className="text-gray-700 text-sm font-medium mb-1 block"
                 >
-                  {t("profile.name") || "Nombre de usuario"}
+                  {user.type === "Empresa" ? "Hotel" : "Nombre de usuario"}
                 </Label>
+
                 <Input
                   id="name"
                   name="name"
