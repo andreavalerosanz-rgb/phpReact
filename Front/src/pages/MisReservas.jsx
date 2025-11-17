@@ -15,12 +15,15 @@ const MisReservas = () => {
   )
 
   useEffect(() => {
-    // Simulación de reservas cargadas
-    setReservas([
+      fetch("localhost:8080/api/reservas/user/"+currentUser.id)
+      .then(response => response.json())
+      .then(data => setReservas(data))
+      .catch(error => console.error("Error fetching reservas:", error))
+    /*setReservas([
       { id: 1, fecha: "2025-11-20T14:00:00", servicio: "Sala A", estado: "Confirmada" },
       { id: 2, fecha: "2025-11-14T09:00:00", servicio: "Sala B", estado: "Pendiente" },
       { id: 3, fecha: "2025-11-25T16:00:00", servicio: "Sala C", estado: "Confirmada" },
-    ])
+    ])*/
   }, [])
 
   const handleEdit = (reserva) => {

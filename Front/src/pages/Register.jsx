@@ -16,7 +16,7 @@ const Register = () => {
 
             <Footer />
         </div>
-    )
+    )   
 }
 
 export default Register

@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from '../hooks/useTranslation'
 
-const Header = () => {
+// Accept 'isLoggedIn' as a prop
+const Header = ({ isLoggedIn }) => { 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { t, currentLanguage, changeLanguage, getAvailableLanguages, updateCount } = useTranslation()
 
@@ -29,6 +30,9 @@ const Header = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
         
+        {/* NOTE: You'll also need to manage the responsive collapse behavior 
+            of the 'navbar-collapse' class, which is missing from the original structure. 
+            For now, I'm keeping your 'flex' structure. */}
         <div className='flex'>
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
@@ -59,18 +63,33 @@ const Header = () => {
               ))}
             </select>
             
-            <Link 
-              to="/login" 
-              className="btn btn-outline-primary"
-            >
-              {t('common.login')}
-            </Link>
-            <Link 
-              to="/registro" 
-              className="btn btn-primary"
-            >
-              {t('common.register')}
-            </Link>
+            {/* CONDITIONAL RENDERING LOGIC */}
+            {isLoggedIn ? (
+              // Show Dashboard when logged in
+              <Link 
+                to="/dashboard" 
+                className="btn btn-success fw-bold" // Changed color for emphasis
+              >
+                {t('common.dashboard') || 'Dashboard'}
+              </Link>
+            ) : (
+              // Show Login and Register when logged out
+              <>
+                <Link 
+                  to="/login" 
+                  className="btn btn-outline-primary"
+                >
+                  {t('common.login')}
+                </Link>
+                <Link 
+                  to="/registro" 
+                  className="btn btn-primary"
+                >
+                  {t('common.register')}
+                </Link>
+              </>
+            )}
+            
           </div>
         </div>
       </div>

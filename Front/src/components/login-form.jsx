@@ -43,6 +43,11 @@ export function LoginForm({ className, ...props }) {
       const data = await response.json()
       console.log("Login exitoso:", data)
       // Aquí podrías guardar token, redirigir, etc.
+      localStorage.setItem("UserData", {
+        name: data.name,
+        email: data.email,
+      })
+
     } catch (error) {
       console.error(error)
     }*/

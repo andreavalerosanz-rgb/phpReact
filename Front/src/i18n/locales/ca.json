@@ -6,7 +6,9 @@
     "home": "Inici",
     "services": "Serveis",
     "prices": "Preus",
-    "contact": "Contacte"
+    "contact": "Contacte",
+    "dashboard": "Tauler de control"
+
   },
   "menu": {
     "profile": "Perfil",
@@ -64,4 +66,7 @@
     "contact": "Contacte",
     "rights": "&copy; 2024 Isla Transfers. Tots els drets reservats."
   }
+
+
+
 }

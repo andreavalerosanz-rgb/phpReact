@@ -22,6 +22,11 @@ import {
   SelectLabel,
 } from "@/components/ui/select"
 
+const handlesubmit = (e) => {
+  // Aquí iría la lógica para manejar el envío del formulario
+  console.log("Formulario enviado")
+}
+
 export function SignupForm({
   ...props
 }) {
@@ -35,7 +40,7 @@ export function SignupForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form>
+        <form onSubmit={handlesubmit()}>
           <FieldGroup>
             <Field className="mt-4">
               <FieldLabel htmlFor="tipo-cliente">Tipo de cliente</FieldLabel>
