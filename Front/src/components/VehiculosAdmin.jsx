@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react"
 import { IconTrash, IconPencil, IconX, IconPlus } from "@tabler/icons-react"
 
+export const vehiculosMock = [
+  { id: 1, marca: "Toyota", modelo: "Corolla", matricula: "1234ABC" },
+  { id: 2, marca: "Mercedes", modelo: "Vito", matricula: "5678XYZ" },
+]
+
 export default function VehiculosAdmin() {
     const [vehiculos, setVehiculos] = useState([])
 
@@ -16,11 +21,8 @@ export default function VehiculosAdmin() {
     const [vehiculoEditando, setVehiculoEditando] = useState(null)
 
     useEffect(() => {
-        setVehiculos([
-            { id: 1, marca: "Toyota", modelo: "Corolla", matricula: "1234ABC" },
-            { id: 2, marca: "Mercedes", modelo: "Vito", matricula: "5678XYZ" },
-        ])
-    }, [])
+    setVehiculos(vehiculosMock)
+}, [])
 
     const eliminarVehiculo = (id) => {
         if (!confirm("¿Eliminar este vehículo?")) return
@@ -66,7 +68,7 @@ export default function VehiculosAdmin() {
 
     return (
         <div className="!p-8">
-            <h1 className="text-3xl font-bold mb-6 !my-6">Gestión de Vehículos</h1>
+            <h1 className="text-3xl font-bold">Gestión de Vehículos</h1>
 
             {/* BOTÓN AÑADIR */}
             <button

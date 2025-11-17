@@ -12,6 +12,7 @@ export const reservasEjemplo = [
       email: "juan@example.com",
       telefono: "+34 600 123 456",
       viajeros: 2,
+      vehiculoId: 1,
     },
   },
 
@@ -28,6 +29,7 @@ export const reservasEjemplo = [
       email: "ana@example.com",
       telefono: "+34 611 555 222",
       viajeros: 1,
+      vehiculoId: 2,
     },
   },
 
@@ -45,6 +47,7 @@ export const reservasEjemplo = [
       email: "carlos@example.com",
       telefono: "+34 699 000 111",
       viajeros: 3,
+      vehiculoId: 1,
     },
     // Mantienes la info completa para DetalleReserva
     vuelta: {
@@ -68,6 +71,7 @@ export const reservasEjemplo = [
       email: "carlos@example.com",
       telefono: "+34 699 000 111",
       viajeros: 3,
+      vehiculoId: 1,
     }
   }
 ]

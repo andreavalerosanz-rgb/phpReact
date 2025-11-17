@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { useNavigate } from "react-router-dom"
-import { reservasEjemplo } from '../components/reservasEjemplo'
+import { reservasEjemplo } from "../components/reservasEjemplo"
 
 const tipoLabels = {
   "aeropuerto-hotel": "Aeropuerto 🡪 Hotel",
@@ -17,21 +17,38 @@ const tipoColor = {
   "ida-vuelta": "bg-orange-500",
 }
 
+/* ---------------------------------------------
+   Obtener la fecha/hora principal según el tipo
+--------------------------------------------- */
+function getFechaPrincipal(reserva) {
+  if (reserva.fechaLlegada && reserva.horaLlegada)
+    return `${reserva.fechaLlegada}T${reserva.horaLlegada}`
+
+  if (reserva.fechaVuelta && reserva.horaVueloSalida)
+    return `${reserva.fechaVuelta}T${reserva.horaVueloSalida}`
+
+  return reserva.fecha // fallback para las reservas simples del mock
+}
+
+/* ---------------------------------------------
+   Componente principal
+--------------------------------------------- */
 export default function DetalleReservaCalendarComp({ id }) {
   const navigate = useNavigate()
 
-  const reserva = reservasEjemplo.find((r) => r.id === Number(id))
+  // Buscar por string SIEMPRE → compatible con IDs 3, 3.1, etc.
+  const reserva = reservasEjemplo.find(r => String(r.id) === String(id))
 
   if (!reserva) {
     return (
       <div className="text-center py-10">
         <h2 className="text-xl font-semibold mb-4">Reserva no encontrada</h2>
-        <Button onClick={() => navigate("/calendario")}>
-          Volver al calendario
-        </Button>
+        <Button onClick={() => navigate("/calendario")}>Volver al calendario</Button>
       </div>
     )
   }
+
+  const fechaPrincipal = getFechaPrincipal(reserva)
 
   return (
     <Card className="shadow-md rounded-xl">
@@ -48,17 +65,31 @@ export default function DetalleReservaCalendarComp({ id }) {
       </CardHeader>
 
       <CardContent className="space-y-6 text-[var(--dark-slate-gray)]">
-
+        
+        {/* ---------------------- */}
+        {/* Información del traslado */}
+        {/* ---------------------- */}
         <div className="p-4 border rounded-lg bg-white space-y-1">
           <h3 className="font-semibold mb-1">Información del traslado</h3>
 
-          <p><strong>Fecha:</strong> {format(new Date(reserva.fecha), "d 'de' MMMM yyyy", { locale: es })}</p>
-          <p><strong>Hora:</strong> {format(new Date(reserva.fecha), "HH:mm")}h</p>
+          <p>
+            <strong>Fecha:</strong>{" "}
+            {format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })}
+          </p>
+
+          <p>
+            <strong>Hora:</strong>{" "}
+            {format(new Date(fechaPrincipal), "HH:mm")}h
+          </p>
+
           <p><strong>Origen:</strong> {reserva.origen}</p>
           <p><strong>Destino:</strong> {reserva.destino}</p>
           <p><strong>Descripción:</strong> {reserva.servicio}</p>
         </div>
 
+        {/* ---------------------- */}
+        {/* Datos del pasajero */}
+        {/* ---------------------- */}
         <div className="p-4 border rounded-lg bg-white space-y-1">
           <h3 className="font-semibold mb-1">Datos del pasajero</h3>
 
@@ -66,18 +97,32 @@ export default function DetalleReservaCalendarComp({ id }) {
           <p><strong>Email:</strong> {reserva.pasajeros.email}</p>
           <p><strong>Teléfono:</strong> {reserva.pasajeros.telefono}</p>
           <p><strong>Viajeros:</strong> {reserva.pasajeros.viajeros}</p>
+          
+          {reserva.pasajeros.vehiculo && (
+            <p><strong>Vehículo:</strong> {reserva.pasajeros.vehiculo}</p>
+          )}
         </div>
 
+        {/* ---------------------- */}
+        {/* Información de la vuelta */}
+        {/* ---------------------- */}
         {reserva.vuelta && (
           <div className="p-4 border rounded-lg bg-white space-y-1">
             <h3 className="font-semibold mb-1">Datos de la vuelta</h3>
 
-            <p><strong>Fecha:</strong> {format(new Date(reserva.vuelta.fecha), "d 'de' MMMM yyyy", { locale: es })}</p>
+            <p>
+              <strong>Fecha:</strong>{" "}
+              {format(new Date(reserva.vuelta.fecha), "d 'de' MMMM yyyy", { locale: es })}
+            </p>
+
             <p><strong>Origen:</strong> {reserva.vuelta.origen}</p>
             <p><strong>Destino:</strong> {reserva.vuelta.destino}</p>
           </div>
         )}
 
+        {/* ---------------------- */}
+        {/* Botón volver */}
+        {/* ---------------------- */}
         <div className="pt-2 flex justify-center mb-2">
           <Button
             className="rounded-lg! bg-[var(--dark-slate-gray)] hover:bg-[var(--ebony)] text-[var(--ivory)]"
