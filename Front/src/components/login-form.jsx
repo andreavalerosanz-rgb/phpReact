@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { useNavigate } from "react-router-dom"   // 👈 IMPORTANTE
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,14 +16,16 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { apiLogin } from "../api.js";
-import { mapLoginToBackend } from "../backendMapper.js";
+import { apiLogin } from "../api.js"
+import { mapLoginToBackend } from "../backendMapper.js"
 
 export function LoginForm({ className, ...props }) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   })
+
+  const navigate = useNavigate()   // 👈 AQUÍ creamos navigate
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -32,14 +35,29 @@ export function LoginForm({ className, ...props }) {
   e.preventDefault()
 
   try {
-    const mapped = mapLoginToBackend(formData)
+    const mapped = mapLoginToBackend(formData) // { email, password }
     console.log("JSON LOGIN generado:", mapped)
 
-    await apiLogin(mapped) // ← NO hace fetch real
+    const data = await apiLogin(mapped)
+    // data = { role, name, userId, token }
 
-    alert("Login preparado (sin enviar todavía)")
+    // Guardar sesión
+    localStorage.setItem("token", data.token)
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        id: data.userId,
+        name: data.name,
+        role: data.role,
+        email: mapped.email,
+      })
+    )
+
+    // 🔹 DE MOMENTO: todos al mismo dashboard
+    navigate("/dashboard")
   } catch (err) {
-    console.error(err)
+    console.error("Error en login:", err)
+    alert("Email o contraseña incorrectos")
   }
 }
 
@@ -65,6 +83,7 @@ export function LoginForm({ className, ...props }) {
                     type="email"
                     placeholder="correo@ejemplo.com"
                     required
+                    value={formData.email}
                     onChange={handleChange}
                   />
                 </Field>
@@ -76,6 +95,7 @@ export function LoginForm({ className, ...props }) {
                     name="password"
                     type="password"
                     required
+                    value={formData.password}
                     onChange={handleChange}
                   />
                   <a

@@ -5,7 +5,7 @@ services:
     ports:
       - "8081:80"
     volumes:
-      - ./Backend/public:/var/www/html  # cambiado a /public *
+      - ./public:/var/www/html  # cambiado a /public *
     depends_on:
       - db
 

@@ -1,6 +1,39 @@
 <?php
 declare(strict_types=1);
 
+// spl_autoload_register(function($class){
+//     $prefix='App\\'; 
+//     $base=__DIR__.'/../app/';
+//     if (strncmp($prefix,$class,strlen($prefix))!==0) return;
+//     $rel = substr($class, strlen($prefix));
+//     $file=$base.str_replace('\\','/',$rel).'.php';
+//     if (file_exists($file)) require $file;
+// });
+/**
+ * 1. Cargar configuración
+ *    (ajusta la ruta si tu config está en otro sitio)
+ */
+$config = require __DIR__ . '/../config/config.php';
+
+/**
+ * 2. CORS: permitir llamadas desde el Front (Vite)
+ */
+$origin = $config['cors']['origin'] ?? '*';
+
+header("Access-Control-Allow-Origin: {$origin}");
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+
+// Si el navegador hace una preflight request (OPTIONS),
+// respondemos vacío y salimos
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
+/**
+ * 3. Autoloader y router (lo que ya tenías)
+ */
 spl_autoload_register(function($class){
     $prefix='App\\'; 
     $base=__DIR__.'/../app/';
