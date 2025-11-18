@@ -5,7 +5,7 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 // Helper general
 async function request(method, path, body, token) {
-  const headers = { "Content-Type": "application/json" };
+ const headers = { "Content-Type": "application/json" };
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -60,4 +60,23 @@ export async function apiRegister(data) {
 export async function apiCrearReserva(data, token) {
   console.log("JSON CREAR RESERVA:", data);
   return request("POST", "/api/reservas", data, token);
+}
+
+// =============================
+// DASHBOARDS
+// =============================
+
+// Usuario particular
+export async function apiGetUserDashboard(userId, token) {
+  return request("GET", `/api/user/${userId}/dashboard`, null, token);
+}
+
+// Hotel
+export async function apiGetHotelDashboard(hotelId, token) {
+  return request("GET", `/api/hotel/${hotelId}/dashboard`, null, token);
+}
+
+// Admin
+export async function apiGetAdminDashboard(token) {
+  return request("GET", `/api/admin/dashboard`, null, token);
 }

@@ -10,7 +10,7 @@ export default function VehiculosAdmin() {
     const [showEditModal, setShowEditModal] = useState(false)
 
     const [nuevoVehiculo, setNuevoVehiculo] = useState({
-    Descripción: "",       // aquí va "marca" o descripción del vehículo
+    Descripcion: "",       // aquí va "marca" o descripción del vehículo
     email_conductor: "",   // email del conductor
     password: ""           // password del vehículo
     });
@@ -24,7 +24,7 @@ export default function VehiculosAdmin() {
         // mapear campos a lo que espera tu frontend
         const vehiculosMapped = data.map(v => ({
             id_vehiculo: v.id_vehiculo,
-            Descripcion: v.descripcion, 
+            Descripcion: v["Descripción"],
             email_conductor: v.email_conductor,
             password: v.password
         }));
@@ -62,34 +62,32 @@ export default function VehiculosAdmin() {
     };
 
     fetch(`http://localhost:8080/api/vehiculos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevoVehiculoAPI)
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Error creando vehículo");
-        return res.json();
-    })
-    .then(data => {
-        // Añadimos el nuevo vehículo a la lista
-        setVehiculos(prev => [...prev, {
-            id_vehiculo: data.id_vehiculo,
-            descripcion: data.descripcion,
-            email_conductor: data.email_conductor,
-            password: data.password
-        }]);
-        // Limpiamos formulario
-        setNuevoVehiculo({ Descripcion: "", email_conductor: "", password: "" });
-        setShowAddModal(false);
-    })
-    .catch(err => console.error("Error creando vehículo:", err));
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(nuevoVehiculoAPI)
+})
+.then(res => res.json().then(data => ({ status: res.status, body: data })))
+.then(({ status, body }) => {
+    if (status !== 201) {
+        console.error("Error creando vehículo:", body);
+        return;
+    }
+    setVehiculos(prev => [...prev, {
+        id_vehiculo: body.id,
+        Descripcion: body.descripcion,
+        email_conductor: body.email_conductor,
+        password: nuevoVehiculo.password
+    }]);
+    setNuevoVehiculo({ Descripcion: "", email_conductor: "", password: "" });
+    setShowAddModal(false);
+})
+.catch(err => console.error("Error creando vehículo:", err));
 }
 
     // -----------------------------
     // EDITAR VEHÍCULO
     // -----------------------------
-    const guardarCambiosVehiculo = () => {
-    // Objeto con los campos que la API espera
+const guardarCambiosVehiculo = () => {
     const cambiosVehiculoAPI = {
         descripcion: vehiculoEditando.Descripcion,
         email_conductor: vehiculoEditando.email_conductor,
@@ -103,17 +101,33 @@ export default function VehiculosAdmin() {
     })
     .then(res => {
         if (!res.ok) throw new Error("Error actualizando vehículo");
-        return res.json();
+        // No necesitamos parsear JSON porque backend devuelve solo {ok: true}
     })
-    .then(updated => {
-        // Actualizamos el estado con los cambios
+    .then(() => {
+        // Actualizamos la lista localmente usando los valores que ya tenemos
         setVehiculos(prev =>
-            prev.map(v => v.id_vehiculo === updated.id_vehiculo ? updated : v)
+            prev.map(v =>
+                v.id_vehiculo === vehiculoEditando.id_vehiculo ? vehiculoEditando : v
+            )
         );
         setShowEditModal(false);
     })
     .catch(err => console.error("Error actualizando vehículo:", err));
 }
+
+            // -----------------------------
+            // ABRIR/CERRAR MODAL DE EDICIÓN
+            // -----------------------------
+            const abrirEditarVehiculo = (vehiculo) => {
+                setVehiculoEditando(vehiculo); 
+                setShowEditModal(true);
+            }
+
+            const cerrarEditarVehiculo = () => {
+                setVehiculoEditando(null);
+                setShowEditModal(false);
+            }
+            // Fin de la nueva sección.
 
     return (
         <div className="!p-8">
@@ -143,9 +157,9 @@ export default function VehiculosAdmin() {
                         </thead>
                         <tbody>
                             {vehiculos.map((v) => (
-                                <tr key={v.id} className="border-b hover:bg-gray-50">
+                                <tr key={v.id_vehiculo} className="border-b hover:bg-gray-50">
                                     <td className="p-3">{v.id_vehiculo}</td>
-                                    <td className="p-3">{v.descripción}</td>
+                                    <td className="p-3">{v.Descripcion}</td>
                                     <td className="p-3">{v.email_conductor}</td>
                                     <td className="p-3">{v.password}</td>
                                     <td className="p-3 flex justify-center gap-3">
@@ -157,7 +171,7 @@ export default function VehiculosAdmin() {
                                         </button>
                                         <button
                                             className="text-red-600 hover:text-red-800"
-                                            onClick={() => eliminarVehiculo(v.id)}
+                                            onClick={() => eliminarVehiculo(v.id_vehiculo)}
                                         >
                                             <IconTrash size={20} />
                                         </button>
@@ -195,8 +209,8 @@ export default function VehiculosAdmin() {
                                 type="text"
                                 placeholder="Descripción"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={nuevoVehiculo.descripción}
-                                onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, Descripción: e.target.value })}
+                                value={nuevoVehiculo.Descripcion}
+                                onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, Descripcion: e.target.value })}
                             />
 
                             <input
@@ -253,9 +267,9 @@ export default function VehiculosAdmin() {
                             <input
                                 type="text"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={vehiculoEditando.descripción}
+                                value={vehiculoEditando.Descripcion}
                                 onChange={(e) =>
-                                    setVehiculoEditando({ ...vehiculoEditando, descripción: e.target.value })
+                                    setVehiculoEditando({ ...vehiculoEditando, Descripcion: e.target.value })
                                 }
                             />
 

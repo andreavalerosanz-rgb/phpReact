@@ -14,6 +14,10 @@ import Servicios from './pages/Servicios'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import Vehiculos from '@/pages/Vehiculos.jsx'
 
+import UserDashboard from './pages/UserDashboard.jsx';
+import HotelDashboard from './pages/HotelDashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+
 function App() {
   return (
     <Router>
@@ -23,7 +27,10 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/registro" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} /> {/* fallback */}
+          <Route path="/user/:id/dashboard" element={<UserDashboard />} />
+          <Route path="/hotel/:id/dashboard" element={<HotelDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/perfil" element={<PerfilUsuario />} />
           <Route path="/reservas" element={<MisReservas />} />
           <Route path="/calendario" element={<Calendario />} />

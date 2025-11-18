@@ -17,34 +17,41 @@ const PerfilUsuario = () => {
   })
 
   useEffect(() => {
-    const storedType = localStorage.getItem("userType") || "particular"
-    const storedUser = JSON.parse(localStorage.getItem("userData")) || {
-      name: "John Doe",
-      email: "john@example.com",
-    }
+  const storedUser = JSON.parse(localStorage.getItem("userData")) || {}
 
-    setUser({
-      ...storedUser,
-      type: storedType.charAt(0).toUpperCase() + storedType.slice(1),
-    })
-  }, [])
+  const tipoMap = {
+    user: "Particular",
+    hotel: "Empresa",
+    admin: "Administrador",
+  }
+
+  setUser({
+    ...storedUser,
+    type: tipoMap[storedUser.role] || "", // aquí se instancia type según role
+  })
+}, [])
+
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value })
   }
 
   const handleSave = () => {
-    localStorage.setItem("userData", JSON.stringify(user))
-    toast.success("Perfil actualizado correctamente", {
-      position: "bottom-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      theme: "colored",
-    })
-  }
+  localStorage.setItem("userData", JSON.stringify(user))
+
+  // Si no quieres cambiar el tipo, no toques localStorage.userType
+  // localStorage.setItem("userType", "hotel") <- solo si realmente cambia el rol
+
+  toast.success("Perfil actualizado correctamente", {
+    position: "bottom-right",
+    autoClose: 3000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    theme: "colored",
+  })
+}
 
   return (
     <DashboardLayout>

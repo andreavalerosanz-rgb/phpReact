@@ -34,6 +34,7 @@ class JWT {
 
         // comprobar expiración
         if (isset($payload['exp']) && $payload['exp'] < time()) {
+            error_log("Token expirado. exp: {$payload['exp']}, time(): " . time());
             return false;
         }
 

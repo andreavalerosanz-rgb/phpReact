@@ -18,17 +18,9 @@ const Dashboard = () => {
   if (!userType) return null
 
   // ------ PLACEHOLDERS ------
-  const reservasEjemplo = {
-    admin: 34,         
-    particular: 12,    
-    empresa: 21,      
-  }
+  const reservasEjemplo = { }
 
-  const adminStatsEjemplo = {
-    reservasTotales: 34,
-    viajerosTotales: 89,
-    hotelesRegistrados: 12,
-  }
+  const adminStatsEjemplo = {}
 
   const dashboardContent = {
     admin: (

@@ -6,6 +6,22 @@ use App\Core\DB;
 
 class HotelController extends Controller {
 
+    public function dashboard($id) {
+    $st = DB::pdo()->prepare("SELECT * FROM transfer_hoteles WHERE id_hotel = ?");
+    $st->execute([(int)$id]);
+    $hotel = $st->fetch();
+
+    if (!$hotel) {
+        $this->json(['error'=>'Hotel no encontrado'],404);
+        return;
+    }
+
+    $this->json([
+        'hotel' => $hotel,
+        // puedes añadir más info del dashboard aquí
+    ]);
+}
+
     // Listar reservas del hotel
     public function reservas($hotelId){
         $sql = "SELECT * FROM transfer_reservas

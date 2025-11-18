@@ -3,13 +3,23 @@ namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\DB;
+use App\Helpers\JWT;
 
 class UserController extends Controller {
 
-    public function __construct() {
-        if (session_status() == PHP_SESSION_NONE) {
-            session_start();
-        }
+    /**
+     * Obtener datos del usuario a partir del token JWT
+     */
+    private function getUserFromToken() {
+        $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        if (!$authHeader) return null;
+
+        if (!preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) return null;
+
+        $token = $matches[1];
+        $payload = JWT::decode($token); // tu clase JWT ya hace la verificación
+
+        return $payload ?: null;
     }
 
     /**
@@ -17,20 +27,25 @@ class UserController extends Controller {
      * GET /api/user/{id}/dashboard
      */
     public function dashboard($userId = null) {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $userEmail = $input['email'] ?? $_SESSION['user']['email'] ?? null;
-
-        if (!$userEmail) {
+        $payload = $this->getUserFromToken();
+        if (!$payload) {
             $this->json(['error' => 'No autenticado'], 401);
             return;
         }
+
+        // Verificar que el ID de URL coincida con el del token (opcional)
+        if ($userId !== null && $userId != $payload['userId']) {
+            $this->json(['error' => 'No autorizado'], 403);
+            return;
+        }
+
+        $userEmail = $payload['email'];
 
         $sql = "SELECT * FROM transfer_reservas WHERE email_cliente = ? ORDER BY id_reserva DESC";
         $st = DB::pdo()->prepare($sql);
         $st->execute([$userEmail]);
         $reservas = $st->fetchAll();
 
-        // DEBUG: mostrar info de email y cantidad de reservas
         $this->json([
             'debug_email' => $userEmail,
             'reservas_count' => count($reservas),
@@ -39,38 +54,30 @@ class UserController extends Controller {
     }
 
     /**
-     * Listar todas las reservas de un usuario por ID
+     * Listar todas las reservas de un usuario
      * GET /api/user/{id}/reservas
      */
-    public function reservas($userId) {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $role = $input['role'] ?? null;
+    public function reservas($userId = null) {
+        $payload = $this->getUserFromToken();
+        if (!$payload) {
+            $this->json(['error' => 'No autenticado'], 401);
+            return;
+        }
 
-        if ($role !== 'user') {
+        if (($userId !== null && $userId != $payload['userId']) || ($payload['role'] ?? '') !== 'user') {
             $this->json(['error' => 'No autorizado'], 403);
             return;
         }
 
-        // Buscar email del viajero según ID
-        $st = DB::pdo()->prepare("SELECT * FROM transfer_viajeros WHERE id_viajero = ?");
-        $st->execute([(int)$userId]);
-        $user = $st->fetch();
-
-        if (!$user) {
-            $this->json(['error' => 'Usuario no encontrado', 'id_viajero' => $userId]);
-            return;
-        }
-
-        $userEmail = $user['email_viajero'];
+        $userEmail = $payload['email'];
 
         $sql = "SELECT * FROM transfer_reservas WHERE email_cliente = ? ORDER BY id_reserva DESC";
         $st = DB::pdo()->prepare($sql);
         $st->execute([$userEmail]);
         $reservas = $st->fetchAll();
 
-        // DEBUG: mostrar info
         $this->json([
-            'debug_id_viajero' => $userId,
+            'debug_id_viajero' => $payload['userId'],
             'debug_email' => $userEmail,
             'reservas_count' => count($reservas),
             'reservas' => $reservas
@@ -81,25 +88,26 @@ class UserController extends Controller {
      * Calendario de reservas de un usuario
      * GET /api/user/{id}/calendario?from=YYYY-MM-DD&to=YYYY-MM-DD
      */
-    public function calendario($userId) {
+    public function calendario($userId = null) {
+        $payload = $this->getUserFromToken();
+        if (!$payload) {
+            $this->json(['error' => 'No autenticado'], 401);
+            return;
+        }
+
+        if ($userId !== null && $userId != $payload['userId']) {
+            $this->json(['error' => 'No autorizado'], 403);
+            return;
+        }
+
         $from = $this->query('from');
         $to   = $this->query('to');
-
         if (!$from || !$to) {
             $this->json(['error' => 'Se requieren parámetros from y to'], 400);
             return;
         }
 
-        $st = DB::pdo()->prepare("SELECT * FROM transfer_viajeros WHERE id_viajero = ?");
-        $st->execute([(int)$userId]);
-        $user = $st->fetch();
-
-        if (!$user) {
-            $this->json(['error' => 'Usuario no encontrado', 'id_viajero' => $userId]);
-            return;
-        }
-
-        $userEmail = $user['email_viajero'];
+        $userEmail = $payload['email'];
 
         $sql = "SELECT id_reserva, fecha_entrada, fecha_vuelo_salida, hora_entrada, hora_vuelo_salida, id_tipo_reserva
                 FROM transfer_reservas
@@ -128,9 +136,8 @@ class UserController extends Controller {
             }
         }
 
-        // DEBUG
         $this->json([
-            'debug_id_viajero' => $userId,
+            'debug_id_viajero' => $payload['userId'],
             'debug_email' => $userEmail,
             'events_count' => count($events),
             'events' => $events
@@ -141,7 +148,18 @@ class UserController extends Controller {
      * Calendario con vista day/week/month
      * GET /api/user/{id}/calendario-view?view=day|week|month
      */
-    public function calendarioView($userId) {
+    public function calendarioView($userId = null) {
+        $payload = $this->getUserFromToken();
+        if (!$payload) {
+            $this->json(['error' => 'No autenticado'], 401);
+            return;
+        }
+
+        if ($userId !== null && $userId != $payload['userId']) {
+            $this->json(['error' => 'No autorizado'], 403);
+            return;
+        }
+
         $view = $this->query('view', 'month');
         $date = $this->query('date', date('Y-m-d'));
 
@@ -163,15 +181,7 @@ class UserController extends Controller {
                 break;
         }
 
-        $st = DB::pdo()->prepare("SELECT * FROM transfer_viajeros WHERE id_viajero = ?");
-        $st->execute([(int)$userId]);
-        $user = $st->fetch();
-        if (!$user) {
-            $this->json(['error' => 'Usuario no encontrado', 'id_viajero' => $userId]);
-            return;
-        }
-
-        $userEmail = $user['email_viajero'];
+        $userEmail = $payload['email'];
 
         $sql = "SELECT id_reserva, fecha_entrada, fecha_vuelo_salida, hora_entrada, hora_vuelo_salida, id_tipo_reserva
                 FROM transfer_reservas
@@ -203,7 +213,7 @@ class UserController extends Controller {
         }
 
         $this->json([
-            'debug_id_viajero' => $userId,
+            'debug_id_viajero' => $payload['userId'],
             'debug_email' => $userEmail,
             'events_count' => count($events),
             'events' => $events

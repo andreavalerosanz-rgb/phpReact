@@ -42,7 +42,9 @@ export function LoginForm({ className, ...props }) {
     // data = { role, name, userId, token }
 
     // Guardar sesión
-    localStorage.setItem("token", data.token)
+    if (!data.token) throw new Error("No se recibió token del backend");
+
+    localStorage.setItem("token", data.token);
     localStorage.setItem(
       "user",
       JSON.stringify({
@@ -51,15 +53,34 @@ export function LoginForm({ className, ...props }) {
         role: data.role,
         email: mapped.email,
       })
-    )
+    );
+    localStorage.setItem(
+      "userData",
+      JSON.stringify({ name: data.name, email: mapped.email, type: data.role })
+    );
 
-    // 🔹 DE MOMENTO: todos al mismo dashboard
-    navigate("/dashboard")
+    localStorage.setItem("userData", JSON.stringify({name:data.name, email:mapped.email, type:data.role}))
+
+    // 🔹 Redirección según rol
+    switch (data.role) {
+      case 'admin':
+        navigate('/admin/dashboard');
+        break;
+      case 'hotel':
+        navigate(`/hotel/${data.userId}/dashboard`);
+        break;
+      case 'user':
+        navigate(`/user/${data.userId}/dashboard`);
+        break;
+      default:
+        navigate('/dashboard'); // fallback
+    }
+
   } catch (err) {
     console.error("Error en login:", err)
     alert("Email o contraseña incorrectos")
   }
-}
+} 
 
 
   return (

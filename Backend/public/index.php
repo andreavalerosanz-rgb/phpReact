@@ -70,13 +70,13 @@ $router->delete('/api/reservas/{id}', 'ReservationController@destroy'); // elimi
 $router->get('/api/hotel/{id}/reservas', 'HotelController@reservas'); // reservas de un hotel (por id)
 $router->get('/api/hotel/{id}/calendario', 'CalendarController@hotelCalendar'); // Calendario Hotel - Sin filtaros día/semana/mes
 $router->get('/api/hotel/{id}/calendario-view', 'CalendarController@hotelCalendarView'); // Celendario Hotel - Con filtros día/semana/mes
+$router->get('/api/hotel/{id}/dashboard', 'HotelController@dashboard'); // dashboard del hotel (por id)
 
 // ----------------- USER ------------------
 $router->get('/api/user/{id}/dashboard', 'UserController@dashboard');
 $router->get('/api/user/{id}/reservas', 'UserController@reservas');
 $router->get('/api/user/{id}/calendario', 'UserController@calendario');
 $router->get('/api/user/{id}/calendario-view', 'UserController@calendarioView');
-$router->get('/api/hoteles', 'HotelController@index');
 
 
 // ----------------- CALENDAR ----------------

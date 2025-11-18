@@ -19,7 +19,7 @@ const menus = {
     { title: "Vehículos", url: "/vehiculos", icon: IconCar }, 
   ],
 
-  particular: [
+  user: [
     { title: "Resumen", url: "/dashboard", icon: IconChartBar },
     { title: "Mis Reservas", url: "/reservas", icon: IconListDetails },
     { title: "Nueva Reserva", url: "/reservas/nueva", icon: IconFileDescription },
@@ -27,7 +27,7 @@ const menus = {
     { title: "Mi Perfil", url: "/perfil", icon: IconUsers },
   ],
 
-  empresa: [
+  hotel: [
     { title: "Resumen", url: "/dashboard", icon: IconChartBar },
     { title: "Mis Reservas", url: "/reservas", icon: IconListDetails },
     { title: "Nueva Reserva", url: "/reservas/nueva", icon: IconFileDescription },
@@ -37,14 +37,9 @@ const menus = {
 }
 
 export const DashboardLayout = ({ children, currentUser }) => {
-  const [userType, setUserType] = useState(null)
-
-  useEffect(() => {
-    const storedType = localStorage.getItem("userType") || "particular"
-    setUserType(storedType.toLowerCase())
-  }, [])
-
-  if (!userType) return null
+  const [userType, setUserType] = useState(
+    currentUser?.type?.toLowerCase() || localStorage.getItem("userType") || "user"
+  )
 
   return (
     <div className="min-h-screen w-full flex bg-gray-50 text-gray-900 overflow-hidden">
@@ -55,12 +50,12 @@ export const DashboardLayout = ({ children, currentUser }) => {
           variant="default"
         />
 
-<SidebarInset className="flex-1 flex flex-col min-h-screen px-0">
-  <header className="h-24 w-full bg-(--sidebar) shadow-md flex items-center justify-center" >
-  <h1>Dashboard</h1>
-    </header>
-  <main className="flex-1 overflow-y-auto p-8">{children}</main>
-</SidebarInset>
+        <SidebarInset className="flex-1 flex flex-col min-h-screen px-0">
+          <header className="h-24 w-full bg-(--sidebar) shadow-md flex items-center justify-center">
+            <h1>Dashboard</h1>
+          </header>
+          <main className="flex-1 overflow-y-auto p-8">{children}</main>
+        </SidebarInset>
       </SidebarProvider>
     </div>
   )
