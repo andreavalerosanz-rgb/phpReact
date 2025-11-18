@@ -76,6 +76,7 @@ $router->get('/api/user/{id}/dashboard', 'UserController@dashboard');
 $router->get('/api/user/{id}/reservas', 'UserController@reservas');
 $router->get('/api/user/{id}/calendario', 'UserController@calendario');
 $router->get('/api/user/{id}/calendario-view', 'UserController@calendarioView');
+$router->get('/api/hoteles', 'HotelController@index');
 
 
 // ----------------- CALENDAR ----------------

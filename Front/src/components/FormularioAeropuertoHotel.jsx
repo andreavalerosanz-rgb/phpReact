@@ -18,50 +18,10 @@ import {
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
 
-
 export default function FormularioAeropuertoHotel({ onCancel }) {
 
     const [vehiculos, setVehiculos] = useState([]);
     const [hoteles, setHoteles] = useState([]);
-
-
-    useEffect(() => {
-    async function cargarDatos() {
-        try {
-            // Vehículos
-            const mockVehiculos = [
-                { id_vehiculo: 1, marca: "Toyota", modelo: "Corolla" },
-                { id_vehiculo: 2, marca: "Mercedes", modelo: "Vito" }
-            ];
-            setVehiculos(mockVehiculos);
-
-            // Hoteles
-            const rHoteles = await fetch("http://localhost:8080/api/hoteles");
-            const dataHoteles = await rHoteles.json();
-            setHoteles(dataHoteles);
-
-        } catch (err) {
-            console.error("Error cargando datos:", err);
-        }
-    }
-
-    cargarDatos();
-}, []);
-
-
-    async function enviarReserva() {
-        const mapped = mapReservaToBackend(form)
-        const token = localStorage.getItem("token")
-
-        try {
-            console.log("JSON generado:", mapped)
-            // No enviamos nada mientras no haya backend
-            setReservaConfirmada(true)
-        } catch (err) {
-            console.error(err)
-        }
-
-    }
 
     const [form, setForm] = useState({
         fechaLlegada: "",
@@ -80,14 +40,85 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
     const [errorFecha, setErrorFecha] = useState("");
     const [reservaConfirmada, setReservaConfirmada] = useState(false);
 
-    const hotelesEjemplo = [
-        "Riu Palace",
-        "Bahía Príncipe Fantasía",
-        "Iberostar Selection",
-        "Hard Rock Hotel",
-        "Barceló Bávaro Palace",
-        "Meliá Caribe Beach",
-    ];
+
+
+    useEffect(() => {
+        async function cargarDatos() {
+            try {
+                // Vehículos reales desde backend
+                const rVehiculos = await fetch("http://localhost:8080/api/vehiculos");
+                const dataVehiculos = await rVehiculos.json();
+                setVehiculos(dataVehiculos);
+
+                // Hoteles reales desde backend
+                const rHoteles = await fetch("http://localhost:8080/api/hoteles");
+                const dataHoteles = await rHoteles.json();
+                setHoteles(dataHoteles);
+
+            } catch (err) {
+                console.error("Error cargando datos:", err);
+            }
+        }
+
+        cargarDatos();
+    }, []);
+
+    async function enviarReserva() {
+
+        try {
+            const body = {
+                tipo: "IDA", // o "VUELTA" o "IDA_VUELTA"
+
+                id_hotel: Number(form.hotel),
+                id_destino: Number(form.hotel), // mismo hotel como destino
+
+                id_vehiculo: Number(form.vehiculo),
+                num_viajeros: Number(form.viajeros),
+
+                email_cliente: form.email,
+                telefono_cliente: form.telefono,
+                nombre_cliente: form.nombre,
+
+                fecha_entrada: form.fechaLlegada,
+                hora_entrada: form.horaLlegada,
+
+                numero_vuelo_entrada: form.vuelo,
+                origen_vuelo_entrada: form.aeropuertoOrigen,
+
+                role: "user"
+            };
+
+            const fechaReserva = new Date(`${form.fechaLlegada}T${form.horaLlegada}`);
+            const minimo = new Date(Date.now() + 48 * 60 * 60 * 1000);
+
+            if (fechaReserva < minimo) {
+                alert("Debes reservar con al menos 48 horas de antelación.");
+                return;
+            }
+
+            console.log("Enviando al backend:", body);
+
+            const r = await fetch("http://localhost:8080/api/reservas", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(body),
+            });
+
+            if (!r.ok) {
+                const err = await r.text();
+                console.error("Error en backend:", err);
+                alert("Error al crear reserva");
+                return;
+            }
+
+            setReservaConfirmada(true);
+
+        } catch (err) {
+            console.error("Error enviando reserva:", err);
+        }
+    }
 
     return (
         <Card className="w-full max-w-3xl mx-auto">
@@ -162,9 +193,9 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                                         <SelectValue placeholder="Selecciona un hotel" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {hotelesEjemplo.map((hotel) => (
-                                            <SelectItem key={hotel} value={hotel}>
-                                                {hotel}
+                                        {hoteles.map((hotel) => (
+                                            <SelectItem key={hotel.id_hotel} value={hotel.id_hotel}>
+                                                {hotel.nombre}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -183,14 +214,13 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
 
                                     <SelectContent>
                                         {vehiculos.map((v) => (
-                                            <SelectItem key={v.id} value={String(v.id)}>
+                                            <SelectItem key={v.id_vehiculo} value={String(v.id_vehiculo)}>
                                                 {v.marca} {v.modelo}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </Field>
-
 
                             <Field>
                                 <div className="flex items-center gap-2">
