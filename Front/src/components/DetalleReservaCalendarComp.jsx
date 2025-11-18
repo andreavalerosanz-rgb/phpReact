@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { useNavigate } from "react-router-dom"
-import { reservasEjemplo } from "../components/reservasEjemplo"
+import { useEffect, useState } from "react"
 
 const tipoLabels = {
   "aeropuerto-hotel": "Aeropuerto 🡪 Hotel",
@@ -36,8 +36,44 @@ function getFechaPrincipal(reserva) {
 export default function DetalleReservaCalendarComp({ id }) {
   const navigate = useNavigate()
 
-  // Buscar por string SIEMPRE → compatible con IDs 3, 3.1, etc.
-  const reserva = reservasEjemplo.find(r => String(r.id) === String(id))
+  const [reserva, setReserva] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const cargarReserva = async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/reservas/${id}`)
+
+        if (!response.ok) {
+          throw new Error("No se pudo cargar la reserva")
+        }
+
+        const data = await response.json()
+        setReserva(data)
+
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    cargarReserva()
+  }, [id])
+
+  if (loading) {
+    return <div className="text-center py-10">Cargando reserva...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-xl font-semibold mb-4">Error al cargar la reserva</h2>
+        <Button onClick={() => navigate("/calendario")}>Volver al calendario</Button>
+      </div>
+    )
+  }
 
   if (!reserva) {
     return (
@@ -47,6 +83,7 @@ export default function DetalleReservaCalendarComp({ id }) {
       </div>
     )
   }
+
 
   const fechaPrincipal = getFechaPrincipal(reserva)
 
@@ -65,7 +102,7 @@ export default function DetalleReservaCalendarComp({ id }) {
       </CardHeader>
 
       <CardContent className="space-y-6 text-[var(--dark-slate-gray)]">
-        
+
         {/* ---------------------- */}
         {/* Información del traslado */}
         {/* ---------------------- */}
@@ -97,7 +134,7 @@ export default function DetalleReservaCalendarComp({ id }) {
           <p><strong>Email:</strong> {reserva.pasajeros.email}</p>
           <p><strong>Teléfono:</strong> {reserva.pasajeros.telefono}</p>
           <p><strong>Viajeros:</strong> {reserva.pasajeros.viajeros}</p>
-          
+
           {reserva.pasajeros.vehiculo && (
             <p><strong>Vehículo:</strong> {reserva.pasajeros.vehiculo}</p>
           )}

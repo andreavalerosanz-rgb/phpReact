@@ -45,7 +45,7 @@ export function CalendarReservas() {
   useEffect(() => {
     const cargarReservas = async () => {
       try {
-        const response = await fetch("/api/calendar/events")
+        const response = await fetch("http://localhost:8080/api/calendar/events")
 
         if (!response.ok) throw new Error("Error al obtener reservas")
         const data = await response.json()

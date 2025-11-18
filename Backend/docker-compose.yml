@@ -5,7 +5,11 @@ services:
     ports:
       - "8081:80"
     volumes:
+<<<<<<< Updated upstream
       - ./public:/var/www/html  # cambiado a /public *
+=======
+      - ./public:/var/www/html # cambiado a /public *
+>>>>>>> Stashed changes
     depends_on:
       - db
 
