@@ -16,6 +16,11 @@ class HotelController extends Controller {
         $this->json($st->fetchAll());
     }
 
+    public function index() {
+    $st = DB::pdo()->query("SELECT * FROM transfer_hoteles ORDER BY id_hotel ASC");
+    $this->json($st->fetchAll());
+}
+
     // Mostrar calendario del hotel (rango de fechas)
     public function calendario($hotelId){
         $from = $_GET['from'] ?? null;
