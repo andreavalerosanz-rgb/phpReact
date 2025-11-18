@@ -96,7 +96,11 @@ class AuthController extends Controller
 
     // ---------------- REGISTRO USUARIO (VIAJERO) ----------------
 public function registerUser()
-{
+{ 
+     ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+
     $in = $this->body(); // JSON → array
 
     // El front manda: tipoCliente, name, email, password, confirm-password
