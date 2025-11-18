@@ -17,33 +17,37 @@ import {
 } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
-import { mapReservaToBackend } from "@/backendMapper";
 
 
 export default function FormularioAeropuertoHotel({ onCancel }) {
 
     const [vehiculos, setVehiculos] = useState([]);
+    const [hoteles, setHoteles] = useState([]);
+
 
     useEffect(() => {
-        async function cargarVehiculos() {
-            try {
-                const mockVehiculos = [
-                    { id: 1, marca: "Toyota", modelo: "Corolla" },
-                    { id: 2, marca: "Mercedes", modelo: "Vito" }
-                ];
-                setVehiculos(mockVehiculos);
+    async function cargarDatos() {
+        try {
+            // Vehículos
+            const mockVehiculos = [
+                { id_vehiculo: 1, marca: "Toyota", modelo: "Corolla" },
+                { id_vehiculo: 2, marca: "Mercedes", modelo: "Vito" }
+            ];
+            setVehiculos(mockVehiculos);
 
-                // BACKEND READY:
-                // const res = await fetch("/api/vehiculos");
-                // const data = await res.json();
-                // setVehiculos(data);
+            // Hoteles
+            const rHoteles = await fetch("http://localhost:8080/api/hoteles");
+            const dataHoteles = await rHoteles.json();
+            setHoteles(dataHoteles);
 
-            } catch (err) {
-                console.error("Error cargando vehículos:", err);
-            }
+        } catch (err) {
+            console.error("Error cargando datos:", err);
         }
-        cargarVehiculos();
-    }, []);
+    }
+
+    cargarDatos();
+}, []);
+
 
     async function enviarReserva() {
         const mapped = mapReservaToBackend(form)

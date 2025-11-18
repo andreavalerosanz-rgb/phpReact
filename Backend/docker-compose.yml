@@ -5,7 +5,7 @@ services:
     ports:
       - "8081:80"
     volumes:
-      - ./public:/var/www/html  # cambiado a /public *
+      - ./public:/var/www/html
     depends_on:
       - db
 
@@ -14,9 +14,8 @@ services:
     container_name: isla_db
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root       # contraseña del root
-      MYSQL_DATABASE: isla_transfer   # base de datos inicial
-      # Eliminamos MYSQL_USER y MYSQL_PASSWORD para root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: isla_transfer
     ports:
       - "3307:3306"
     volumes:
