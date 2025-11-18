@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { IconTrash, IconPencil, IconX, IconPlus } from "@tabler/icons-react"
 
-export const vehiculosMock = [
-  { id: 1, marca: "Toyota", modelo: "Corolla", matricula: "1234ABC" },
-  { id: 2, marca: "Mercedes", modelo: "Vito", matricula: "5678XYZ" },
-]
+export const vehiculosMock = []
 
 export default function VehiculosAdmin() {
     const [vehiculos, setVehiculos] = useState([])
@@ -13,58 +10,110 @@ export default function VehiculosAdmin() {
     const [showEditModal, setShowEditModal] = useState(false)
 
     const [nuevoVehiculo, setNuevoVehiculo] = useState({
-        marca: "",
-        modelo: "",
-        matricula: "",
-    })
+    Descripción: "",       // aquí va "marca" o descripción del vehículo
+    email_conductor: "",   // email del conductor
+    password: ""           // password del vehículo
+    });
 
     const [vehiculoEditando, setVehiculoEditando] = useState(null)
 
     useEffect(() => {
-    setVehiculos(vehiculosMock)
+    fetch("http://localhost:8080/api/vehiculos")
+    .then(res => res.json())
+    .then(data => {
+        // mapear campos a lo que espera tu frontend
+        const vehiculosMapped = data.map(v => ({
+            id_vehiculo: v.id_vehiculo,
+            Descripcion: v.descripcion, 
+            email_conductor: v.email_conductor,
+            password: v.password
+        }));
+        setVehiculos(vehiculosMapped);
+    })
+    .catch(err => console.error("Error cargando vehículos:", err));
 }, [])
 
     const eliminarVehiculo = (id) => {
-        if (!confirm("¿Eliminar este vehículo?")) return
-        setVehiculos((prev) => prev.filter((v) => v.id !== id))
+    if (!confirm("¿Eliminar este vehículo?")) return;
+
+    fetch(`http://localhost:8080/api/vehiculos/${id}`, {
+        method: "DELETE",
+    })
+    .then(() => {
+        setVehiculos(prev => prev.filter(v => v.id_vehiculo !== id));
+    })
+    .catch(err => console.error("Error eliminando vehículo:", err));
     }
 
     // -----------------------------
     // AÑADIR VEHÍCULO
     // -----------------------------
     const guardarNuevoVehiculo = () => {
-        if (!nuevoVehiculo.marca || !nuevoVehiculo.modelo || !nuevoVehiculo.matricula) {
-            alert("Debes completar todos los campos")
-            return
-        }
-
-        const nuevo = {
-            id: vehiculos.length + 1,
-            ...nuevoVehiculo,
-        }
-
-        setVehiculos([...vehiculos, nuevo])
-
-        setNuevoVehiculo({ marca: "", modelo: "", matricula: "" })
-        setShowAddModal(false)
+    if (!nuevoVehiculo.Descripcion || !nuevoVehiculo.email_conductor || !nuevoVehiculo.password) {
+        alert("Debes completar todos los campos");
+        return;
     }
+
+    // Preparamos objeto con los nombres que espera la API
+    const nuevoVehiculoAPI = {
+        descripcion: nuevoVehiculo.Descripcion,
+        email_conductor: nuevoVehiculo.email_conductor,
+        password: nuevoVehiculo.password
+    };
+
+    fetch(`http://localhost:8080/api/vehiculos`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nuevoVehiculoAPI)
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Error creando vehículo");
+        return res.json();
+    })
+    .then(data => {
+        // Añadimos el nuevo vehículo a la lista
+        setVehiculos(prev => [...prev, {
+            id_vehiculo: data.id_vehiculo,
+            descripcion: data.descripcion,
+            email_conductor: data.email_conductor,
+            password: data.password
+        }]);
+        // Limpiamos formulario
+        setNuevoVehiculo({ Descripcion: "", email_conductor: "", password: "" });
+        setShowAddModal(false);
+    })
+    .catch(err => console.error("Error creando vehículo:", err));
+}
 
     // -----------------------------
     // EDITAR VEHÍCULO
     // -----------------------------
-    const abrirEditarVehiculo = (veh) => {
-        setVehiculoEditando({ ...veh })
-        setShowEditModal(true)
-    }
-
     const guardarCambiosVehiculo = () => {
-        setVehiculos((prev) =>
-            prev.map((v) =>
-                v.id === vehiculoEditando.id ? vehiculoEditando : v
-            )
-        )
-        setShowEditModal(false)
-    }
+    // Objeto con los campos que la API espera
+    const cambiosVehiculoAPI = {
+        descripcion: vehiculoEditando.Descripcion,
+        email_conductor: vehiculoEditando.email_conductor,
+        password: vehiculoEditando.password
+    };
+
+    fetch(`http://localhost:8080/api/vehiculos/${vehiculoEditando.id_vehiculo}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cambiosVehiculoAPI)
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Error actualizando vehículo");
+        return res.json();
+    })
+    .then(updated => {
+        // Actualizamos el estado con los cambios
+        setVehiculos(prev =>
+            prev.map(v => v.id_vehiculo === updated.id_vehiculo ? updated : v)
+        );
+        setShowEditModal(false);
+    })
+    .catch(err => console.error("Error actualizando vehículo:", err));
+}
 
     return (
         <div className="!p-8">
@@ -87,7 +136,7 @@ export default function VehiculosAdmin() {
                             <tr>
                                 <th className="p-3 text-left">ID</th>
                                 <th className="p-3 text-left">Marca</th>
-                                <th className="p-3 text-left">Modelo</th>
+                                <th className="p-3 text-left">Conductor</th>
                                 <th className="p-3 text-left">Matrícula</th>
                                 <th className="p-3 text-center">Acciones</th>
                             </tr>
@@ -95,10 +144,10 @@ export default function VehiculosAdmin() {
                         <tbody>
                             {vehiculos.map((v) => (
                                 <tr key={v.id} className="border-b hover:bg-gray-50">
-                                    <td className="p-3">{v.id}</td>
-                                    <td className="p-3">{v.marca}</td>
-                                    <td className="p-3">{v.modelo}</td>
-                                    <td className="p-3">{v.matricula}</td>
+                                    <td className="p-3">{v.id_vehiculo}</td>
+                                    <td className="p-3">{v.descripción}</td>
+                                    <td className="p-3">{v.email_conductor}</td>
+                                    <td className="p-3">{v.password}</td>
                                     <td className="p-3 flex justify-center gap-3">
                                         <button
                                             className="text-blue-600 hover:text-blue-800"
@@ -144,26 +193,26 @@ export default function VehiculosAdmin() {
                         <div className="space-y-4! p-4! -mt-4!">
                             <input
                                 type="text"
-                                placeholder="Marca"
+                                placeholder="Descripción"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={nuevoVehiculo.marca}
-                                onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, marca: e.target.value })}
+                                value={nuevoVehiculo.descripción}
+                                onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, Descripción: e.target.value })}
+                            />
+
+                            <input
+                                type="email"
+                                placeholder="Email del conductor"
+                                className="w-full border rounded-lg px-3 py-2"
+                                value={nuevoVehiculo.email_conductor}
+                                onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, email_conductor: e.target.value })}
                             />
 
                             <input
                                 type="text"
-                                placeholder="Modelo"
+                                placeholder="Password"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={nuevoVehiculo.modelo}
-                                onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, modelo: e.target.value })}
-                            />
-
-                            <input
-                                type="text"
-                                placeholder="Matrícula"
-                                className="w-full border rounded-lg px-3 py-2"
-                                value={nuevoVehiculo.matricula}
-                                onChange={(e) => setNuevoVehiculo({ ...nuevoVehiculo, matricula: e.target.value })}
+                                value={nuevoVehiculo.password}
+                                onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, password: e.target.value })}
                             />
                         </div>
                         <div className="flex justify-end gap-4 -mt-4! p-4!">
@@ -204,27 +253,27 @@ export default function VehiculosAdmin() {
                             <input
                                 type="text"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={vehiculoEditando.marca}
+                                value={vehiculoEditando.descripción}
                                 onChange={(e) =>
-                                    setVehiculoEditando({ ...vehiculoEditando, marca: e.target.value })
+                                    setVehiculoEditando({ ...vehiculoEditando, descripción: e.target.value })
                                 }
                             />
 
                             <input
                                 type="text"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={vehiculoEditando.modelo}
+                                value={vehiculoEditando.email_conductor}
                                 onChange={(e) =>
-                                    setVehiculoEditando({ ...vehiculoEditando, modelo: e.target.value })
+                                    setVehiculoEditando({ ...vehiculoEditando, email_conductor: e.target.value })
                                 }
                             />
 
                             <input
                                 type="text"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={vehiculoEditando.matricula}
+                                value={vehiculoEditando.password}
                                 onChange={(e) =>
-                                    setVehiculoEditando({ ...vehiculoEditando, matricula: e.target.value })
+                                    setVehiculoEditando({ ...vehiculoEditando, password: e.target.value })
                                 }
                             />
                         </div>
