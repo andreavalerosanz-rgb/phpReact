@@ -1,0 +1,15 @@
+FROM php:8.1-apache
+
+
+# Instalar Composer globalmente
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Establecer directorio de trabajo
+WORKDIR /var/www/html
+
+# Cambiar permisos para evitar problemas
+RUN chown -R www-data:www-data /var/www/html
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]
