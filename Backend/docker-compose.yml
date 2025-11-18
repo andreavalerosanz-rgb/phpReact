@@ -3,9 +3,9 @@ services:
     image: php:8.2-apache
     container_name: isla_web
     ports:
-      - "8080:80"
+      - "8081:80"
     volumes:
-      - ./public:/var/www/html  # cambiado a /public *
+      - ./Backend/public:/var/www/html  # cambiado a /public *
     depends_on:
       - db
 

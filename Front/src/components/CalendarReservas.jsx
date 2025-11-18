@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
   addDays,
   startOfWeek,
@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { reservasEjemplo } from '../components/reservasEjemplo'
 
 // Colores según tipo de traslado
 const tipoColor = {
@@ -35,18 +34,50 @@ const tipoColor = {
   "hotel-aeropuerto": "bg-blue-500",
   "ida-vuelta": "bg-orange-500",
 }
-
-const eventos = reservasEjemplo.map(r => ({
-  id: r.id,
-  title: r.servicio,
-  start: new Date(r.fecha),
-  end: new Date(r.fecha)
-}))
-
-const eventosDia = (date) =>
-  reservasEjemplo.filter((e) => isSameDay(new Date(e.fecha), date))
-
 export function CalendarReservas() {
+
+  const [reservas, setReservas] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const eventosDia = (date) =>
+    reservas.filter((e) => isSameDay(new Date(e.fecha), date))
+
+  useEffect(() => {
+    const cargarReservas = async () => {
+      try {
+        const response = await fetch("/api/calendar/events")
+
+        if (!response.ok) throw new Error("Error al obtener reservas")
+        const data = await response.json()
+
+        console.log("RESERVAS RAW:", data)
+
+        // Adaptar backend → formato frontend
+        const reservasAdaptadas = data.map(ev => ({
+          id: ev.id,
+          fecha: ev.start,
+          servicio: ev.localizador,
+          tipo:
+            ev.color === "#4caf50"
+              ? "aeropuerto-hotel"
+              : ev.color === "#1976d2"
+                ? "hotel-aeropuerto"
+                : "ida-vuelta",
+        }))
+
+        console.log("RESERVAS ADAPTADAS:", reservasAdaptadas)
+
+        setReservas(reservasAdaptadas)
+      } catch (err) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    cargarReservas()
+  }, [])
+
   const [view, setView] = useState("week") // month | week | day
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState(null)
@@ -200,7 +231,7 @@ export function CalendarReservas() {
               Chevron: () => null,
               DayButton: ({ day, modifiers, ...props }) => {
                 const fechaDia = day.date.toDateString()
-                const eventosDelDia = reservasEjemplo.filter(
+                const eventosDelDia = reservas.filter(
                   (e) => new Date(e.fecha).toDateString() === day.date.toDateString()
                 )
 
@@ -250,7 +281,7 @@ export function CalendarReservas() {
                 </h3>
                 {(() => {
                   const eventosDelDia = selectedDay
-                    ? reservasEjemplo.filter(
+                    ? reservas.filter(
                       (e) => new Date(e.fecha).toDateString() === selectedDay.toDateString()
                     )
                     : []
