@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DashboardLayout } from "@/components/dashboardLayout"
 import { useParams, useNavigate } from "react-router-dom"
-import { reservasEjemplo } from '../components/reservasEjemplo'
-
 import {
   PlaneLanding,
   PlaneTakeoff,
@@ -20,40 +18,133 @@ import {
   SelectContent,
   SelectItem
 } from "@/components/ui/select"
-import { vehiculosMock } from "../components/VehiculosAdmin"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
 const DetalleReserva = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+
   const [reserva, setReserva] = useState(null)
   const [initialReserva, setInitialReserva] = useState(null)
   const [editable, setEditable] = useState(true)
-  const hotelesDisponibles = [
-    ...new Set(
-      reservasEjemplo.flatMap(r => [r.destino, r.origen])
-        .filter(h => h && h.toLowerCase().includes("hotel"))
-    )
-  ]
+
+  const [hotelesDisponibles, setHotelesDisponibles] = useState([])
+  const [vehiculosDisponibles, setVehiculosDisponibles] = useState([])
+
   const hoy = new Date().toISOString().split("T")[0]
 
+  // ----------------------------------------
+  // Cargar hoteles y vehículos reales
+  // ----------------------------------------
   useEffect(() => {
-    const r = reservasEjemplo.find(res => res.id === Number(id))
-    setReserva(r)
-    setInitialReserva(r)
+    fetch("http://localhost:8080/api/hoteles")
+      .then(r => r.json())
+      .then(data => setHotelesDisponibles(data.map(h => h.nombre)))
+
+    fetch("http://localhost:8080/api/vehiculos")
+      .then(r => r.json())
+      .then(data =>
+        setVehiculosDisponibles(
+          data.map(v => ({
+            id: v.id_vehiculo,
+            nombre: v.Descripción
+          }))
+        )
+      )
+  }, [])
+
+  // ----------------------------------------
+  // Cargar reserva real
+  // ----------------------------------------
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch(`http://localhost:8080/api/reservas/${id}`)
+        if (!res.ok) throw new Error("Error cargando reserva")
+
+        const data = await res.json()
+
+        // Tipo de reserva
+        const tipo =
+          data.id_tipo_reserva === 1 ? "aeropuerto-hotel" :
+            data.id_tipo_reserva === 2 ? "hotel-aeropuerto" :
+              "ida-vuelta"
+
+        // -------------- CAMPOS PROVENIENTES DEL BACKEND ----------------
+        const adaptada = {
+          ...data,
+          id: data.id_reserva,       // Para mostrar arriba Editar Reserva #X
+          tipo,
+
+          // ====== BLOQUE IDA (Aeropuerto → Hotel) ======
+          fechaLlegada: data.fecha_entrada,
+          horaLlegada: data.hora_entrada,
+          vueloLlegada: data.numero_vuelo_entrada,
+          origen: data.origen_vuelo_entrada,
+
+          // horaRecogida NO EXISTE en backend → uso hora_entrada como referencia
+          horaRecogida: data.hora_entrada,
+
+          // En IDA y en IDA-VUELTA hotelDestino es el mismo
+          hotelDestino: data.hotel_nombre,
+
+
+          // ====== BLOQUE VUELTA (Hotel → Aeropuerto) ======
+
+          // Fecha y hora de vuelta
+          fechaVuelta: data.fecha_vuelo_salida,
+          horaVueloSalida: data.hora_vuelo_salida,
+
+          // En VUELTA y en IDA-VUELTA:
+          // número de vuelo = el mismo que el de entrada
+          vueloSalida: data.numero_vuelo_entrada,
+
+          aeropuertoSalida: data.origen_vuelo_entrada,
+
+          // horaRecogidaHotel NO EXISTE → lo igualo a la de salida si existe
+          horaRecogidaHotel: data.hora_vuelo_salida || data.hora_entrada,
+
+          // Hotel recogida = igual que destino
+          hotelRecogida: data.hotel_nombre,
+
+
+          // ===== PASAJEROS Y VEHÍCULO =====
+          pasajeros: {
+            viajeros: data.num_viajeros,
+            nombre: data.nombre_cliente || "",
+            email: data.email_cliente,
+            telefono: data.telefono_cliente || "",
+            vehiculoId: data.id_vehiculo
+          }
+        }
+
+        setReserva(adaptada)
+        setInitialReserva(adaptada)
+
+      } catch (err) {
+        console.error(err)
+        setReserva(null)
+      }
+    }
+
+    load()
   }, [id])
 
+
+  // ----------------------------------------
+  // Render
+  // ----------------------------------------
   if (!reserva) return <DashboardLayout>Cargando...</DashboardLayout>
 
-  const isIdaVuelta = reserva?.tipo === "ida-vuelta"
+  const isIdaVuelta = reserva.tipo === "ida-vuelta"
   const columnas = isIdaVuelta
     ? "grid-cols-1 md:grid-cols-4"
     : "grid-cols-1 md:grid-cols-2"
 
-  // --------------------------------------------------------------
+  // ----------------------------------------
   // Input reutilizable
-  // --------------------------------------------------------------
+  // ----------------------------------------
   function InputBlock({ label, type = "text", value, onChange, min, disabled }) {
     return (
       <div className="space-y-1">
@@ -70,9 +161,10 @@ const DetalleReserva = () => {
     )
   }
 
-  // --------------------------------------------------------------
-  // Bloque Aeropuerto → Hotel
-  // --------------------------------------------------------------
+  // ----------------------------------------
+  // Bloques EXACTAMENTE iguales a tu UI
+  // ----------------------------------------
+
   function BloqueAeropuertoHotel({ reserva, update, editable, hoy, columnas }) {
     return (
       <div>
@@ -126,7 +218,7 @@ const DetalleReserva = () => {
 
             <Select
               disabled={!editable}
-              value={reserva.hotelDestino}
+              value={reserva.hotelDestino || ""}
               onValueChange={(v) => update("hotelDestino", v)}
             >
               <SelectTrigger className="h-11 rounded-lg! mt-1 w-full">
@@ -147,9 +239,6 @@ const DetalleReserva = () => {
     )
   }
 
-  // --------------------------------------------------------------
-  // Bloque Hotel → Aeropuerto
-  // --------------------------------------------------------------
   function BloqueHotelAeropuerto({ reserva, update, editable, hoy, columnas }) {
     return (
       <div>
@@ -203,7 +292,7 @@ const DetalleReserva = () => {
 
             <Select
               disabled={!editable}
-              value={reserva.hotelRecogida}
+              value={reserva.hotelRecogida || ""}
               onValueChange={(v) => update("hotelRecogida", v)}
             >
               <SelectTrigger className="h-11 rounded-lg! mt-1 w-full">
@@ -224,9 +313,6 @@ const DetalleReserva = () => {
     )
   }
 
-  // --------------------------------------------------------------
-  // Bloque pasajero
-  // --------------------------------------------------------------
   function BloquePasajero({ pasajeros, updatePassenger, editable, columnas }) {
     return (
       <div>
@@ -280,9 +366,9 @@ const DetalleReserva = () => {
                 <SelectValue placeholder="Selecciona un vehículo" />
               </SelectTrigger>
               <SelectContent>
-                {vehiculosMock.map((v) => (
+                {vehiculosDisponibles.map((v) => (
                   <SelectItem key={v.id} value={String(v.id)}>
-                    {v.marca} {v.modelo}
+                    {v.nombre}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -292,9 +378,10 @@ const DetalleReserva = () => {
       </div>
     )
   }
-  // --------------------------------------------------------------
+
+  // ----------------------------------------
   // Acciones
-  // --------------------------------------------------------------
+  // ----------------------------------------
   const update = (campo, valor) => {
     setReserva((prev) => ({ ...prev, [campo]: valor }))
   }
@@ -316,9 +403,6 @@ const DetalleReserva = () => {
     toast.success("Reserva actualizada correctamente", { position: "top-right" })
   }
 
-  // --------------------------------------------------------------
-  // Render
-  // --------------------------------------------------------------
   return (
     <DashboardLayout>
       <div className="flex-1 flex items-center justify-center p-8 mt-3">
