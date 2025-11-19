@@ -6,33 +6,52 @@ use App\Core\DB;
 
 class ProfileController extends Controller {
 
-    // Usuario autenticado
-    private function authUser() {    
-    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if (strpos($auth, 'Bearer ') !== 0) {
-        return null;
-    }
+    /**
+     * Autenticación mediante JWT
+     */
+    private function authUser() {
 
-    $token = trim(str_replace('Bearer ','',$auth));
+        // 1. Leer Authorization de varias fuentes
+        $auth = $_SERVER['HTTP_AUTHORIZATION']
+            ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+            ?? '';
 
-    try {
+        // 2. Intentar con apache_request_headers() si no existe
+        if (!$auth && function_exists('apache_request_headers')) {
+            $headers = apache_request_headers();
+            if (isset($headers['Authorization'])) {
+                $auth = $headers['Authorization'];
+            }
+            if (isset($headers['authorization'])) {
+                $auth = $headers['authorization'];
+            }
+        }
+
+        if (strpos($auth, 'Bearer ') !== 0) {
+            return null;
+        }
+
+        $token = trim(str_replace('Bearer ', '', $auth));
+
+        // 3. Decodificar JWT
         $payload = \App\Helpers\JWT::decode($token);
+        if (!$payload) return null;
 
-        if (!isset($payload->userId) || !isset($payload->role)) {
+        if (!isset($payload['userId']) || !isset($payload['role'])) {
             return null;
         }
 
         return [
-            'userId' => (int)$payload->userId,
-            'role'   => $payload->role,
-            'email'  => $payload->email ?? null
+            'userId' => (int)$payload['userId'],
+            'role'   => $payload['role'],
+            'email'  => $payload['email'] ?? null
         ];
-
-    } catch (\Exception $e) {
-        return null;
-    }
     }
 
+
+    /**
+     * Obtener perfil según rol
+     */
     public function show()
     {
         $user = $this->authUser();
@@ -41,13 +60,14 @@ class ProfileController extends Controller {
             return $this->json(['error' => 'No autorizado'], 401);
         }
 
+        // SQL por tipo de usuario
         switch ($user['role']) {
 
             case 'admin':
                 $sql = "SELECT 
                             id_admin AS id,
                             nombre,
-                            email_admin AS email
+                            email_admin
                         FROM transfer_admin
                         WHERE id_admin = ?";
                 break;
@@ -56,7 +76,7 @@ class ProfileController extends Controller {
                 $sql = "SELECT 
                             id_hotel AS id,
                             nombre,
-                            email_hotel AS email,
+                            email_hotel,
                             id_zona,
                             Comision
                         FROM transfer_hoteles
@@ -73,7 +93,7 @@ class ProfileController extends Controller {
                             codigoPostal,
                             ciudad,
                             pais,
-                            email_viajero AS email
+                            email_viajero
                         FROM transfer_viajeros
                         WHERE id_viajero = ?";
                 break;
@@ -86,70 +106,92 @@ class ProfileController extends Controller {
         $st->execute([$user['userId']]);
         $data = $st->fetch();
 
+        if (!$data) {
+            return $this->json(['error' => 'No encontrado'], 404);
+        }
+
+        // Normalizar para el frontend
+        $data['role'] = $user['role'];
+
+        if ($user['role'] === 'user') {
+            $data['email'] = $data['email_viajero'];
+            unset($data['email_viajero']);
+        }
+
+        if ($user['role'] === 'hotel') {
+            $data['email_hotel'] = $data['email_hotel'];
+        }
+
+        if ($user['role'] === 'admin') {
+            $data['email_admin'] = $data['email_admin'];
+        }
+
         return $this->json($data);
     }
 
-    public function update() {
-    $user = $this->authUser();
 
-    if (!$user || !isset($user['userId'])) {
-        // No autorizado
-        return $this->json(['error'=>'No autorizado'], 401);
-    }
-
-    $in = $this->body();
-    $fields = ['nombre','email','password'];
-    $set = [];
-    $params = [];
-
-    foreach ($fields as $f) {
-        if (isset($in[$f])) {
-            // Evitar warning por email
-            $col = $f;
-            if ($f === 'email') {
-                $col = match($user['role'] ?? 'user') {
-                    'user' => 'email_viajero',
-                    'hotel' => 'email_hotel',
-                    'admin' => 'email_admin',
-                    default => 'email_viajero'
-                };
-            }
-
-            $set[] = "$col = ?";
-            $params[] = $in[$f];
+    /**
+     * Actualizar perfil según rol
+     */
+    public function update() 
+    {
+        $user = $this->authUser();
+        if (!$user || !isset($user['userId'])) {
+            return $this->json(['error'=>'No autorizado'], 401);
         }
-    }
 
-    if (!$set) {
-        return $this->json(['error'=>'Nada que actualizar'], 400);
-    }
+        $in = $this->body();
+        $set = [];
+        $params = [];
 
-    // Evitar SQL inválido
-    $table = match($user['role'] ?? 'user') {
-        'user' => 'transfer_viajeros',
-        'hotel' => 'transfer_hoteles',
-        'admin' => 'transfer_admin',
-        default => 'transfer_viajeros'
-    };
+        // Campos válidos
+        if (isset($in['nombre'])) {
+            $set[] = "nombre = ?";
+            $params[] = $in['nombre'];
+        }
 
-    $idCol = match($user['role'] ?? 'user') {
-        'user' => 'id_viajero',
-        'hotel' => 'id_hotel',
-        'admin' => 'id_admin',
-        default => 'id_viajero'
-    };
+        if (isset($in['password'])) {
+            $set[] = "password = ?";
+            $params[] = $in['password'];
+        }
 
-    $params[] = $user['userId'];
-    $sql = "UPDATE $table SET ".implode(',', $set)." WHERE $idCol = ?";
+        if (isset($in['email'])) {
+            $col = match($user['role']) {
+                'user' => 'email_viajero',
+                'hotel' => 'email_hotel',
+                'admin' => 'email_admin',
+            };
+            $set[] = "$col = ?";
+            $params[] = $in['email'];
+        }
 
-    try {
-        $st = DB::pdo()->prepare($sql);
-        $st->execute($params);
-    } catch (\PDOException $e) {
-        // Evitar error fatal y mostrar mensaje
-        return $this->json(['error'=>'Error al actualizar'],500);
-    }
+        if (!$set) {
+            return $this->json(['error'=>'Nada que actualizar'], 400);
+        }
 
-    return $this->json(['ok'=>true]);
+        $table = match($user['role']) {
+            'user' => 'transfer_viajeros',
+            'hotel' => 'transfer_hoteles',
+            'admin' => 'transfer_admin',
+        };
+
+        $idCol = match($user['role']) {
+            'user' => 'id_viajero',
+            'hotel' => 'id_hotel',
+            'admin' => 'id_admin',
+        };
+
+        $params[] = $user['userId'];
+
+        $sql = "UPDATE $table SET ".implode(',', $set)." WHERE $idCol = ?";
+
+        try {
+            $st = DB::pdo()->prepare($sql);
+            $st->execute($params);
+        } catch (\PDOException $e) {
+            return $this->json(['error'=>'Error al actualizar'],500);
+        }
+
+        return $this->json(['ok'=>true]);
     }
 }
