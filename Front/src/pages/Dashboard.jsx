@@ -2,93 +2,131 @@ import React, { useEffect, useState } from "react"
 import { DashboardLayout } from "@/components/dashboardLayout"
 
 const Dashboard = () => {
-  const [currentUser, setCurrentUser] = useState(
-    localStorage.getItem("userData")
-      ? JSON.parse(localStorage.getItem("userData"))
-      : { name: "John Doe", email: "john@example.com" }
-  )
+  const [stats, setStats] = useState(null)
 
-  const [userType, setUserType] = useState(null)
+  const currentUser = localStorage.getItem("userData")
+    ? JSON.parse(localStorage.getItem("userData"))
+    : null
+
+  if (!currentUser) return null
+
+  const userType = currentUser.type   // "user" | "hotel" | "admin"
+  const userId = currentUser.id
 
   useEffect(() => {
-    const storedType = localStorage.getItem("userType") || "particular"
-    setUserType(storedType.toLowerCase())
-  }, [])
+    const loadStats = async () => {
+      try {
 
-  if (!userType) return null
+        // -------------------------------
+        // 1) TIPO USER → reservas del usuario
+        // -------------------------------
+        if (userType === "user") {
+          const res = await fetch(`http://localhost:8080/api/user/${userId}/reservas`)
+          const data = await res.json()
 
-  // ------ PLACEHOLDERS ------
-  const reservasEjemplo = {
-    admin: 34,         
-    particular: 12,    
-    empresa: 21,      
-  }
+          setStats({
+            totalReservas: data.length
+          })
+        }
 
-  const adminStatsEjemplo = {
-    reservasTotales: 34,
-    viajerosTotales: 89,
-    hotelesRegistrados: 12,
-  }
+        // -------------------------------
+        // 2) TIPO HOTEL → reservas hacia su hotel
+        // -------------------------------
+        if (userType === "hotel") {
+          const res = await fetch(`http://localhost:8080/api/hotel/${userId}/reservas`)
+          const data = await res.json()
 
-  const dashboardContent = {
-    admin: (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10! p-6!">
+          setStats({
+            totalTraslados: data.length
+          })
+        }
 
-        {/* RESERVAS */}
-        <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
-          <h2 className="text-2xl font-semibold mb-4">Reservas totales</h2>
-          <p className="text-5xl font-bold text-green-600">{adminStatsEjemplo.reservasTotales}</p>
-          <p className="text-sm text-gray-500 mt-2">Reservas registradas este mes.</p>
-        </div>
+        // -------------------------------
+        // 3) TIPO ADMIN → datos globales
+        // -------------------------------
+        if (userType === "admin") {
+          const resReservas = await fetch("http://localhost:8080/api/reservas")
+          const reservas = await resReservas.json()
 
-        {/* VIAJEROS */}
-        <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
-          <h2 className="text-2xl font-semibold mb-4">Viajeros totales</h2>
-          <p className="text-5xl font-bold text-blue-600">{adminStatsEjemplo.viajerosTotales}</p>
-          <p className="text-sm text-gray-500 mt-2">Número total de pasajeros transportados.</p>
-        </div>
+          const resHoteles = await fetch("http://localhost:8080/api/hoteles")
+          const hoteles = await resHoteles.json()
 
-        {/* HOTELES */}
-        <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
-          <h2 className="text-2xl font-semibold mb-4">Hoteles registrados</h2>
-          <p className="text-5xl font-bold text-purple-600">{adminStatsEjemplo.hotelesRegistrados}</p>
-          <p className="text-sm text-gray-500 mt-2">Clientes de tipo empresa.</p>
-        </div>
+          const resUsuarios = await fetch("http://localhost:8080/api/admin/users")
+          const usuarios = await resUsuarios.json()
 
-      </div>
-    ),
-    particular: (
-      <div className="flex justify-center mt-20!">
-        <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
-          <h2 className="text-2xl font-semibold mb-4">Tus reservas totales</h2>
-          <p className="text-5xl font-bold text-blue-600">
-            {reservasEjemplo.particular}
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            ¡Vamos a por más!
-          </p>
-        </div>
-      </div>
-    ),
+          const viajerosTotales = reservas.reduce(
+            (acc, r) => acc + Number(r.num_viajeros || 0),
+            0
+          )
 
-    empresa: (
-      <div className="flex justify-center mt-20!">
-        <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
-          <h2 className="text-2xl font-semibold mb-4">Traslados este mes</h2>
-          <p className="text-5xl font-bold text-purple-600">
-            {reservasEjemplo.empresa}
-          </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Total de traslados hacia tu hotel.
-          </p>
-        </div>
-      </div>
-    ),
-  }
+          setStats({
+            reservasTotales: reservas.length,
+            viajerosTotales,
+            hotelesTotales: hoteles.length,
+            usuariosTotales: usuarios.length
+          })
+        }
 
+      } catch (err) {
+        console.error("Error cargando estadísticas:", err)
+      }
+    }
+
+    loadStats()
+  }, [userId, userType])
+
+  if (!stats) return <DashboardLayout>Cargando...</DashboardLayout>
+
+  // -------------------------------------
+  // CONTENIDO DEL DASHBOARD SEGÚN ROL
+  // -------------------------------------
   return (
     <DashboardLayout currentUser={currentUser}>
-      {dashboardContent[userType]}
+
+      {userType === "user" && (
+        <div className="flex justify-center mt-20!">
+          <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
+            <h2 className="text-2xl font-semibold mb-4">Tus reservas totales</h2>
+            <p className="text-5xl font-bold text-blue-600">{stats.totalReservas}</p>
+            <p className="text-sm text-gray-500 mt-2">¡Gracias por confiar en nosotros!</p>
+          </div>
+        </div>
+      )}
+
+      {userType === "hotel" && (
+        <div className="flex justify-center mt-20!">
+          <div className="bg-white rounded-2xl shadow-md p-10 w-full max-w-md text-center border border-gray-100">
+            <h2 className="text-2xl font-semibold mb-4">Traslados a tu hotel</h2>
+            <p className="text-5xl font-bold text-purple-600">{stats.totalTraslados}</p>
+            <p className="text-sm text-gray-500 mt-2">Reservas asociadas a tu alojamiento.</p>
+          </div>
+        </div>
+      )}
+
+      {userType === "admin" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10! p-6!">
+
+          <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
+            <h2 className="text-2xl font-semibold mb-4">Reservas totales</h2>
+            <p className="text-5xl font-bold text-green-600">{stats.reservasTotales}</p>
+            <p className="text-sm text-gray-500 mt-2">Acumuladas en el sistema.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
+            <h2 className="text-2xl font-semibold mb-4">Viajeros totales</h2>
+            <p className="text-5xl font-bold text-blue-600">{stats.viajerosTotales}</p>
+            <p className="text-sm text-gray-500 mt-2">Personas transportadas.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md p-10 text-center border border-gray-100">
+            <h2 className="text-2xl font-semibold mb-4">Hoteles registrados</h2>
+            <p className="text-5xl font-bold text-purple-600">{stats.hotelesTotales}</p>
+            <p className="text-sm text-gray-500 mt-2">Clientes corporativos.</p>
+          </div>
+
+        </div>
+      )}
+
     </DashboardLayout>
   )
 }

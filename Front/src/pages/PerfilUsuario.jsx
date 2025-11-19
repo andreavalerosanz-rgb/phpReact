@@ -3,137 +3,180 @@ import { DashboardLayout } from "@/components/dashboardLayout"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { useTranslation } from "../hooks/useTranslation"
 import { IconUserCircle } from "@tabler/icons-react"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
 const PerfilUsuario = () => {
-  const { t } = useTranslation()
-  const [user, setUser] = useState({
-    name: "",
-    email: "",
-    type: "",
-  })
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  const localUser = JSON.parse(localStorage.getItem("userData")) || {}
 
   useEffect(() => {
-    const storedType = localStorage.getItem("userType") || "particular"
-    const storedUser = JSON.parse(localStorage.getItem("userData")) || {
-      name: "John Doe",
-      email: "john@example.com",
+    const loadProfile = async () => {
+      try {
+        const token = localStorage.getItem("token")
+
+        if (!token) {
+          console.warn("No token found, redirecting to login")
+          window.location.href = "/login"
+          return
+        }
+
+        const res = await fetch("http://localhost:8080/api/profile", {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          }
+        })
+
+        if (res.status === 401) {
+          console.warn("Token inválido → redirigiendo")
+          window.location.href = "/login"
+          return
+        }
+
+        const data = await res.json()
+
+        let detectedType = "admin"
+        if (data.role === "user") detectedType = "user"
+        if ("email_hotel" in data) detectedType = "hotel"
+        if ("email_admin" in data) detectedType = "admin"
+
+        setUser({
+          ...data,
+          type: detectedType
+        })
+      } catch (err) {
+        console.error("Error cargando perfil", err)
+      } finally {
+        setLoading(false)
+      }
     }
 
-    setUser({
-      ...storedUser,
-      type: storedType.charAt(0).toUpperCase() + storedType.slice(1),
-    })
+    loadProfile()
   }, [])
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value })
   }
 
-  const handleSave = () => {
-    localStorage.setItem("userData", JSON.stringify(user))
-    toast.success("Perfil actualizado correctamente", {
-      position: "bottom-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      theme: "colored",
-    })
+  const handleSave = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+      })
+
+      if (!res.ok) throw new Error()
+
+      toast.success("Perfil actualizado correctamente.")
+
+      // Actualizar localStorage
+      localStorage.setItem(
+        "userData",
+        JSON.stringify({
+          ...localUser,
+          name: user.nombre,
+          email: user.email || user.email_hotel || user.email_admin
+        })
+      )
+    } catch (err) {
+      toast.error("Error al guardar.")
+    }
   }
+
+  if (loading || !user)
+    return (
+      <DashboardLayout>
+        <p className="p-6">Cargando perfil...</p>
+      </DashboardLayout>
+    )
+
+  const type = user.type
+
+  const Field = ({ label, name, type = "text", value }) => (
+    <div className="!px-5">
+      <Label className="text-gray-700 text-sm font-medium mb-1 block">
+        {label}
+      </Label>
+      <Input
+        className="mt-1"
+        name={name}
+        type={type}
+        value={value || ""}
+        onChange={handleChange}
+      />
+    </div>
+  )
 
   return (
     <DashboardLayout>
-      <main className="flex-1 flex justify-center !items-start !p-6 md:p-10  ">
-        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-md border border-gray-100 p-8 md:p-10 transition-all">
-          {/* Header */}
+      <main className="flex-1 flex justify-center items-start p-6 md:p-10">
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-md border border-gray-100 p-10">
+
+          {/* HEADER */}
           <div className="flex flex-col items-center text-center mb-8 pt-4">
-            <div className="bg-[var(--dark-slate-gray)] w-24 h-24 rounded-full flex items-center justify-center mb-4 shadow-inner">
-              <IconUserCircle size={48} className="text-[var(--ivory)]" />
+            <div className="bg-slate-800 w-24 h-24 rounded-full flex items-center justify-center mb-4">
+              <IconUserCircle size={48} className="text-white" />
             </div>
             <h2 className="text-2xl font-semibold text-gray-900">
-              {t("profile.info") || "Información Personal"}
+              Perfil de {type === "user" ? "usuario" : type === "hotel" ? "hotel" : "administrador"}
             </h2>
           </div>
 
           <hr className="border-gray-200 mb-8" />
 
-          {/* Form */}
           <form className="space-y-6">
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div className="!px-5">
-                <Label
-                  htmlFor="name"
-                  className="text-gray-700 text-sm font-medium mb-1 block"
-                >
-                  {user.type === "Empresa" ? "Hotel" : "Nombre de usuario"}
-                </Label>
 
-                <Input
-                  id="name"
-                  name="name"
-                  value={user.name}
-                  onChange={handleChange}
-                  placeholder="Escribe tu nombre..."
-                  className="mt-1"
-                />
+            {/* USER */}
+            {type === "user" && (
+              <div className="grid sm:grid-cols-2 gap-6">
+                <Field label="Nombre" name="nombre" value={user.nombre} />
+                <Field label="Apellido 1" name="apellido1" value={user.apellido1} />
+                <Field label="Apellido 2" name="apellido2" value={user.apellido2} />
+                <Field label="Dirección" name="direccion" value={user.direccion} />
+                <Field label="Código Postal" name="codigoPostal" value={user.codigoPostal} />
+                <Field label="Ciudad" name="ciudad" value={user.ciudad} />
+                <Field label="País" name="pais" value={user.pais} />
+                <Field label="Email" name="email" value={user.email} />
+                <Field label="Contraseña" name="password" type="password" />
               </div>
+            )}
 
-              <div className="!px-5">
-                <Label
-                  htmlFor="email"
-                  className="text-gray-700 text-sm font-medium mb-1 block"
-                >
-                  {t("profile.email") || "Correo electrónico"}
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={user.email}
-                  onChange={handleChange}
-                  placeholder="tuemail@ejemplo.com"
-                  className="mt-1"
-                />
+            {/* HOTEL */}
+            {type === "hotel" && (
+              <div className="grid sm:grid-cols-2 gap-6">
+                <Field label="Nombre del hotel" name="nombre" value={user.nombre} />
+                <Field label="Email" name="email_hotel" value={user.email_hotel} />
+                <Field label="Contraseña" name="password" type="password" value={user.password} />
               </div>
-            </div>
+            )}
 
-            <div className="!px-5">
-              <Label
-                htmlFor="type"
-                className="text-gray-700 text-sm font-medium mb-1 block"
-              >
-                {t("profile.type") || "Tipo de usuario"}
-              </Label>
-              <Input
-                id="type"
-                name="type"
-                value={user.type}
-                disabled
-                className="mt-1 bg-gray-100 text-gray-600"
-              />
-            </div>
+            {/* ADMIN */}
+            {type === "admin" && (
+              <div className="grid sm:grid-cols-2 gap-6">
+                <Field label="Nombre" name="nombre" value={user.nombre} />
+                <Field label="Email" name="email_admin" value={user.email_admin} />
+                <Field label="Contraseña" name="password" type="password" value={user.password} />
+              </div>
+            )}
 
-            {/* Save button */}
-            <div className="!py-8 text-center">
+            {/* BOTÓN */}
+            <div className="py-8 text-center">
               <Button
-                type="button"
                 onClick={handleSave}
-                className="!rounded-lg !px-8 !py-2.5 font-medium shadow-md hover:shadow-lg 
-                  bg-[var(--dark-slate-gray)] hover:bg-[var(--ebony)] text-[var(--ivory)] 
-                  transition-all duration-300"
+                className="rounded-lg px-8 py-2.5 bg-slate-800 text-white"
+                type="button"
               >
-                {t("profile.save") || "Guardar Cambios"}
+                Guardar Cambios
               </Button>
             </div>
           </form>
         </div>
 
-        {/* Toast container */}
         <ToastContainer />
       </main>
     </DashboardLayout>

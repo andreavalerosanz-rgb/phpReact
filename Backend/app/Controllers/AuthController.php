@@ -32,11 +32,13 @@ class AuthController extends Controller
             $token = JWT::encode($payload); // aqui el token recibe el array que se construyó
             // Respuesta JSON
             $this->json([
-                'role' => 'admin',
-                'name' => $admin['nombre'], 
-                'userId' => (int)$admin['id_admin'],
-                'token' => $token,
-            ]);
+    'type' => 'admin',
+    'name' => $admin['nombre'],
+    'email' => $admin['email_admin'],
+    'userId' => (int)$admin['id_admin'],
+    'token' => $token,
+]);
+
             return;
         }
 
@@ -58,11 +60,13 @@ class AuthController extends Controller
             $token = JWT::encode($payload); // aqui el token recibe el array que se construyó
             // Respuesta JSON
             $this->json([
-                'role' => 'hotel',
-                'name' => $hotel['nombre'],
-                'userId' => (int)$hotel['id_hotel'],
-                'token' => $token,
-            ]);
+    'type' => 'hotel',
+    'name' => $hotel['nombre'],
+    'email' => $hotel['email_hotel'],
+    'userId' => (int)$hotel['id_hotel'],
+    'token' => $token,
+]);
+
             return;
         }
 
@@ -82,11 +86,13 @@ class AuthController extends Controller
             $token = JWT::encode($payload); // aqui el token recibe el array que se construyó
             // Respuesta JSON
             $this->json([
-                'role' => 'user',
-                'name' => $user['nombre'], 
-                'userId' => (int)$user['id_viajero'],
-                'token' => $token,
-            ]);
+    'type' => 'user',
+    'name' => $user['nombre'],
+    'email' => $user['email_viajero'],
+    'userId' => (int)$user['id_viajero'],
+    'token' => $token,
+]);
+
             return;
         }
 

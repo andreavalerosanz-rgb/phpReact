@@ -10,13 +10,20 @@ import {
 } from "@tabler/icons-react"
 import { IconCar } from "@tabler/icons-react"
 
+const ROLE_MAP = {
+  user: "particular",
+  hotel: "empresa",
+  admin: "admin",
+};
+
+
 const menus = {
   admin: [
     { title: "Resumen", url: "/dashboard", icon: IconChartBar },
     { title: "Reservas", url: "/reservas", icon: IconListDetails },
     { title: "Calendario", url: "/calendario", icon: IconCalendar },
     { title: "Nueva Reserva", url: "/reservas/nueva", icon: IconFileDescription },
-    { title: "Vehículos", url: "/vehiculos", icon: IconCar }, 
+    { title: "Vehículos", url: "/vehiculos", icon: IconCar },
   ],
 
   particular: [
@@ -40,9 +47,15 @@ export const DashboardLayout = ({ children, currentUser }) => {
   const [userType, setUserType] = useState(null)
 
   useEffect(() => {
-    const storedType = localStorage.getItem("userType") || "particular"
-    setUserType(storedType.toLowerCase())
-  }, [])
+  const storedType = localStorage.getItem("userType");
+
+  const mapped =
+    ROLE_MAP[storedType] || "particular";
+
+  setUserType(mapped);
+}, []);
+
+
 
   if (!userType) return null
 
@@ -55,12 +68,12 @@ export const DashboardLayout = ({ children, currentUser }) => {
           variant="default"
         />
 
-<SidebarInset className="flex-1 flex flex-col min-h-screen px-0">
-  <header className="h-24 w-full bg-(--sidebar) shadow-md flex items-center justify-center" >
-  <h1>Dashboard</h1>
-    </header>
-  <main className="flex-1 overflow-y-auto p-8">{children}</main>
-</SidebarInset>
+        <SidebarInset className="flex-1 flex flex-col min-h-screen px-0">
+          <header className="h-24 w-full bg-(--sidebar) shadow-md flex items-center justify-center" >
+            <h1>Dashboard</h1>
+          </header>
+          <main className="flex-1 overflow-y-auto p-8">{children}</main>
+        </SidebarInset>
       </SidebarProvider>
     </div>
   )
