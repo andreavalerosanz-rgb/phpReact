@@ -7,6 +7,9 @@ import "react-toastify/dist/ReactToastify.css"
 
 
 const MisReservas = () => {
+  const [hoteles, setHoteles] = useState([])
+  const [destinos, setDestinos] = useState([])
+  const [vehiculos, setVehiculos] = useState([])
   const [reservas, setReservas] = useState([])
   const navigate = useNavigate()
   const [currentUser] = useState(
@@ -16,15 +19,74 @@ const MisReservas = () => {
   )
 
   useEffect(() => {
-      fetch("localhost:8080/api/reservas/user/"+currentUser.id)
-      .then(response => response.json())
-      .then(data => setReservas(data))
-      .catch(error => console.error("Error fetching reservas:", error))
-    /*setReservas([
-      { id: 1, fecha: "2025-11-20T14:00:00", servicio: "Sala A", estado: "Confirmada" },
-      { id: 2, fecha: "2025-11-14T09:00:00", servicio: "Sala B", estado: "Pendiente" },
-      { id: 3, fecha: "2025-11-25T16:00:00", servicio: "Sala C", estado: "Confirmada" },
-    ])*/
+    if (!currentUser?.id) {
+      console.error("El usuario no tiene ID")
+      return
+    }
+
+    // 1. Cargar hoteles
+    fetch("http://localhost:8080/api/hoteles")
+      .then(res => res.json())
+      .then(hotelesData => {
+
+        // 2. Cargar vehículos
+        fetch("http://localhost:8080/api/vehiculos")
+          .then(res => res.json())
+          .then(vehiculosData => {
+
+            // 3. Cargar reservas del usuario
+            fetch(`http://localhost:8080/api/user/${currentUser.id}/reservas`)
+              .then(res => res.json())
+              .then(reservasData => {
+
+                const mapped = reservasData.map(r => {
+                  const hotel = hotelesData.find(h => h.id_hotel === r.id_hotel)
+                  const vehiculo = vehiculosData.find(v => v.id_vehiculo === r.id_vehiculo)
+
+                  const nombreHotel = hotel?.nombre || "Hotel desconocido"
+                  const nombreVehiculo = vehiculo?.["Descripción"] || "Vehículo desconocido"
+
+                  const aeropuertoIda = r.origen_vuelo_entrada
+                  const aeropuertoVuelta = r.origen_vuelo_salida || r.origen_vuelo_entrada
+
+                  let servicio = ""
+
+                  switch (r.id_tipo_reserva) {
+                    case 1: // IDA
+                      servicio = `IDA: Aeropuerto ${aeropuertoIda} → ${nombreHotel}`
+                      break
+
+                    case 2: // VUELTA
+                      servicio = `VUELTA: ${nombreHotel} → Aeropuerto ${aeropuertoVuelta}`
+                      break
+
+                    case 3: // IDA_VUELTA
+                      servicio =
+                        `IDA: Aeropuerto ${aeropuertoIda} → ${nombreHotel}\n` +
+                        `VUELTA: ${nombreHotel} → Aeropuerto ${aeropuertoVuelta}`
+                      break
+
+                    default:
+                      servicio = "Trayecto desconocido"
+                  }
+
+                  const fechaCompleta = `${r.fecha_entrada}T${r.hora_entrada}`
+
+                  return {
+                    id: r.id_reserva,
+                    localizador: r.localizador,
+                    servicio,
+                    vehiculo: nombreVehiculo,
+                    fecha: fechaCompleta,
+                    estado: "Confirmada",
+                    raw: r
+                  }
+                })
+
+                setReservas(mapped)
+              })
+          })
+      })
   }, [])
 
   const handleEdit = (reserva) => {
@@ -58,9 +120,10 @@ const MisReservas = () => {
         <table className="min-w-full text-sm text-left border-collapse">
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs tracking-wide">
             <tr>
-              <th className="px-4 py-3">Servicio</th>
-              <th className="px-4 py-3">Fecha</th>
-              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3 text-center">Localizador</th>
+              <th className="px-4 py-3 text-center">Servicio</th>
+              <th className="px-4 py-3 text-center">Fecha</th>
+              <th className="px-4 py-3 text-center">Estado</th>
               <th className="px-4 py-3 text-center">Acciones</th>
             </tr>
           </thead>

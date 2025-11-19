@@ -1,3 +1,5 @@
+// FormularioAeropuertoHotel.jsx
+
 import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
@@ -19,9 +21,10 @@ import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
 
 export default function FormularioAeropuertoHotel({ onCancel }) {
-
     const [vehiculos, setVehiculos] = useState([]);
     const [hoteles, setHoteles] = useState([]);
+    const user = JSON.parse(localStorage.getItem("userData"));
+
 
     const [form, setForm] = useState({
         fechaLlegada: "",
@@ -40,21 +43,16 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
     const [errorFecha, setErrorFecha] = useState("");
     const [reservaConfirmada, setReservaConfirmada] = useState(false);
 
-
-
     useEffect(() => {
         async function cargarDatos() {
             try {
-                // Vehículos reales desde backend
                 const rVehiculos = await fetch("http://localhost:8080/api/vehiculos");
                 const dataVehiculos = await rVehiculos.json();
                 setVehiculos(dataVehiculos);
 
-                // Hoteles reales desde backend
                 const rHoteles = await fetch("http://localhost:8080/api/hoteles");
                 const dataHoteles = await rHoteles.json();
                 setHoteles(dataHoteles);
-
             } catch (err) {
                 console.error("Error cargando datos:", err);
             }
@@ -65,13 +63,18 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
 
     async function enviarReserva() {
 
+        const user = JSON.parse(localStorage.getItem("userData"));
+        if (!user) {
+            alert("No se encontró el usuario en sesión");
+            return;
+        }
+
         try {
             const body = {
-                tipo: "IDA", // o "VUELTA" o "IDA_VUELTA"
+                tipo: "IDA",
 
                 id_hotel: Number(form.hotel),
-                id_destino: Number(form.hotel), // mismo hotel como destino
-
+                id_destino: Number(form.hotel),
                 id_vehiculo: Number(form.vehiculo),
                 num_viajeros: Number(form.viajeros),
 
@@ -81,42 +84,43 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
 
                 fecha_entrada: form.fechaLlegada,
                 hora_entrada: form.horaLlegada,
-
                 numero_vuelo_entrada: form.vuelo,
                 origen_vuelo_entrada: form.aeropuertoOrigen,
 
-                role: "user"
+                tipo_owner: user.type,   // ← ESTE es el campo correcto
+                id_owner: user.id
+
             };
+
 
             const fechaReserva = new Date(`${form.fechaLlegada}T${form.horaLlegada}`);
             const minimo = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
             if (fechaReserva < minimo) {
                 alert("Debes reservar con al menos 48 horas de antelación.");
                 return;
             }
 
-            console.log("Enviando al backend:", body);
+            console.log("Enviando al backend (IDA):", body);
 
             const r = await fetch("http://localhost:8080/api/reservas", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
             });
 
+            const raw = await r.text();
+            console.log("RESPUESTA RAW DEL BACKEND:", raw);
+
             if (!r.ok) {
-                const err = await r.text();
-                console.error("Error en backend:", err);
-                alert("Error al crear reserva");
-                return;
+                console.error("El backend devolvió error:", raw);
+                return alert("Error en backend:\n" + raw);
             }
 
-            setReservaConfirmada(true);
 
+            setReservaConfirmada(true);
         } catch (err) {
             console.error("Error enviando reserva:", err);
+            alert("Error al crear reserva");
         }
     }
 
@@ -143,8 +147,6 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                     ) : (
                         <>
                             <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
-
-
                                 <Field>
                                     <FieldLabel>Fecha de llegada</FieldLabel>
                                     <Input
@@ -161,28 +163,45 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                                             setForm({ ...form, fechaLlegada: valor });
                                         }}
                                     />
-                                    {errorFecha && <p className="text-sm text-red-600 mt-1">{errorFecha}</p>}
+                                    {errorFecha && (
+                                        <p className="text-sm text-red-600 mt-1">{errorFecha}</p>
+                                    )}
                                 </Field>
 
                                 <Field>
                                     <FieldLabel>Hora de llegada</FieldLabel>
-                                    <Input type="time"
+                                    <Input
+                                        type="time"
                                         value={form.horaLlegada}
-                                        onChange={(e) => setForm({ ...form, horaLlegada: e.target.value })} />
+                                        onChange={(e) =>
+                                            setForm({ ...form, horaLlegada: e.target.value })
+                                        }
+                                    />
                                 </Field>
 
                                 <Field>
                                     <FieldLabel>Número de vuelo</FieldLabel>
-                                    <Input placeholder="Ej. IB1234"
+                                    <Input
+                                        placeholder="Ej. IB1234"
                                         value={form.vuelo}
-                                        onChange={(e) => setForm({ ...form, vuelo: e.target.value })} />
+                                        onChange={(e) =>
+                                            setForm({ ...form, vuelo: e.target.value })
+                                        }
+                                    />
                                 </Field>
 
                                 <Field>
                                     <FieldLabel>Aeropuerto de origen</FieldLabel>
-                                    <Input placeholder="Ej. Madrid-Barajas (MAD)"
+                                    <Input
+                                        placeholder="Ej. Madrid-Barajas (MAD)"
                                         value={form.aeropuertoOrigen}
-                                        onChange={(e) => setForm({ ...form, aeropuertoOrigen: e.target.value })} />
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                aeropuertoOrigen: e.target.value,
+                                            })
+                                        }
+                                    />
                                 </Field>
 
                                 <Field>
@@ -196,7 +215,10 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {hoteles.map((hotel) => (
-                                                <SelectItem key={hotel.id_hotel} value={hotel.id_hotel}>
+                                                <SelectItem
+                                                    key={hotel.id_hotel}
+                                                    value={String(hotel.id_hotel)}
+                                                >
                                                     {hotel.nombre}
                                                 </SelectItem>
                                             ))}
@@ -213,14 +235,15 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                                         <SelectTrigger className="h-11 rounded-lg!">
                                             <SelectValue placeholder="Selecciona un vehículo" />
                                         </SelectTrigger>
-
                                         <SelectContent>
                                             {vehiculos.map((v) => (
-                                                <SelectItem key={v.id_vehiculo} value={String(v.id_vehiculo)}>
+                                                <SelectItem
+                                                    key={v.id_vehiculo}
+                                                    value={String(v.id_vehiculo)}
+                                                >
                                                     {v["Descripción"]}
                                                 </SelectItem>
                                             ))}
-
                                         </SelectContent>
                                     </Select>
                                 </Field>
@@ -240,7 +263,8 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                                                 side="top"
                                                 className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2"
                                             >
-                                                Asignaremos uno o varios vehículos del modelo que escojas según el número de viajeros.
+                                                Asignaremos uno o varios vehículos del modelo que escojas
+                                                según el número de viajeros.
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
@@ -252,35 +276,53 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                                         onChange={(e) =>
                                             setForm({
                                                 ...form,
-                                                viajeros: Math.max(1, Number(e.target.value))
+                                                viajeros: Math.max(1, Number(e.target.value)),
                                             })
                                         }
                                     />
                                 </Field>
 
                                 <Field>
-                                    <FieldLabel className="flex items-center h-[24px]">Nombre completo</FieldLabel>
-                                    <Input value={form.nombre}
-                                        onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                                    <FieldLabel className="flex items-center h-[24px]">
+                                        Nombre completo
+                                    </FieldLabel>
+                                    <Input
+                                        value={form.nombre}
+                                        onChange={(e) =>
+                                            setForm({ ...form, nombre: e.target.value })
+                                        }
                                     />
                                 </Field>
 
                                 <Field>
                                     <FieldLabel>Email</FieldLabel>
-                                    <Input type="email"
+                                    <Input
+                                        type="email"
                                         value={form.email}
-                                        onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                                        onChange={(e) =>
+                                            setForm({ ...form, email: e.target.value })
+                                        }
+                                    />
                                 </Field>
 
                                 <Field>
                                     <FieldLabel>Teléfono</FieldLabel>
-                                    <Input type="tel"
+                                    <Input
+                                        type="tel"
                                         value={form.telefono}
-                                        onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
+                                        onChange={(e) =>
+                                            setForm({ ...form, telefono: e.target.value })
+                                        }
+                                    />
                                 </Field>
                             </FieldGroup>
+
                             <div className="w-full flex justify-end mt-8! gap-2">
-                                <Button variant="outline" className="!rounded-lg" onClick={onCancel}>
+                                <Button
+                                    variant="outline"
+                                    className="!rounded-lg"
+                                    onClick={onCancel}
+                                >
                                     Cancelar
                                 </Button>
 

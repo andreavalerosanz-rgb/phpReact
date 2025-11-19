@@ -27,210 +27,263 @@ class ReservationController extends Controller {
     return (bool)$st->fetchColumn();
   }
 
+
 public function store() {
-    $in = $this->body();
+    try {
+        // --------------------------
+        // 1. Leer JSON de la petición
+        // --------------------------
+        $in = $this->body();
 
-    // --------------------------
-    // MAPEO TIPO
-    // --------------------------
-    $tipoTxt = strtoupper(trim($in['tipo'] ?? ''));
-    $map = ['IDA'=>1, 'VUELTA'=>2, 'IDA_VUELTA'=>3];
-    $idTipo = $map[$tipoTxt] ?? null;
+        // --------------------------
+        // 2. OWNER (usuario / hotel / admin)
+        // --------------------------
+        $tipoOwner = $in['tipo_owner'] ?? null;   // "user" | "hotel" | "admin"
+        $idOwner   = isset($in['id_owner']) ? (int)$in['id_owner'] : null;
 
-    $idHotel    = $in['id_hotel']    ?? null;
-    $idDestino  = $in['id_destino']  ?? null;
-    $idVehiculo = $in['id_vehiculo'] ?? null;
-    $pax        = $in['num_viajeros'] ?? null;
-    $emailCliente = isset($in['email_cliente']) ? trim($in['email_cliente']) : null;
-
-    // --------------------------
-    // DATOS IDA (aeropuerto → hotel)
-    // --------------------------
-    $fechaEntrada   = $in['fecha_entrada']        ?? null;
-    $horaEntrada    = $in['hora_entrada']         ?? null;
-    $vueloEntrada   = $in['numero_vuelo_entrada'] ?? null;
-    $origenEntrada  = $in['origen_vuelo_entrada'] ?? null;
-
-    // --------------------------
-    // DATOS VUELTA (hotel → aeropuerto)
-    // Se guardan como ENTRADA si es VUELTA o IDA_VUELTA
-    // --------------------------
-    $fechaSalida = $in['fecha_vuelo_salida'] ?? null;
-    $horaSalida  = $in['hora_vuelo_salida']  ?? null;
-
-    if ($tipoTxt === 'VUELTA') {
-        // VUELTA simple
-        $fechaEntrada  = $fechaSalida;
-        $horaEntrada   = $horaSalida;
-        $vueloEntrada  = $in['numero_vuelo_salida'] ?? null;
-        $origenEntrada = $in['origen_vuelo_salida'] ?? null;
-    }
-
-    if ($tipoTxt === 'IDA_VUELTA') {
-        // IDA_VUELTA usa hora de recogida en hotel
-        $fechaEntrada  = $fechaSalida;
-        $horaEntrada   = $in['hora_recogida_hotel'] ?? null; 
-        $vueloEntrada  = $in['numero_vuelo_salida'] ?? null;
-        $origenEntrada = $in['origen_vuelo_salida'] ?? null;
-    }
-
-    $role = strtolower($in['role'] ?? 'user');
-
-    // --------------------------
-    // VALIDACIONES
-    // --------------------------
-    $errors = [];
-
-    if (!$idTipo) $errors['tipo'] = 'tipo debe ser IDA | VUELTA | IDA_VUELTA';
-
-    foreach (['id_hotel','id_destino','id_vehiculo','num_viajeros'] as $fld) {
-        if (!isset($in[$fld]) || !is_numeric($in[$fld])) {
-            $errors[$fld] = "$fld es requerido y numérico";
-        }
-    }
-
-    if (!$emailCliente)
-        $errors['email_cliente'] = 'email_cliente es requerido';
-    elseif (!filter_var($emailCliente, FILTER_VALIDATE_EMAIL))
-        $errors['email_cliente'] = 'email_cliente no tiene un formato válido';
-
-    // VALIDACIONES IDA
-    if ($tipoTxt === 'IDA') {
-        foreach (['fecha_entrada','hora_entrada','numero_vuelo_entrada','origen_vuelo_entrada'] as $f) {
-            if (empty($in[$f])) $errors[$f] = "Campo $f requerido para IDA";
-        }
-    }
-
-    // VALIDACIONES VUELTA
-    if ($tipoTxt === 'VUELTA') {
-        foreach (['fecha_vuelo_salida','hora_vuelo_salida','numero_vuelo_salida','origen_vuelo_salida'] as $f) {
-            if (empty($in[$f])) $errors[$f] = "Campo $f requerido para VUELTA";
-        }
-    }
-
-    // VALIDACIONES IDA_VUELTA
-    if ($tipoTxt === 'IDA_VUELTA') {
-        foreach (['fecha_entrada','hora_entrada','numero_vuelo_entrada','origen_vuelo_entrada'] as $f) {
-            if (empty($in[$f])) $errors[$f] = "Campo $f requerido para IDA_VUELTA (IDA)";
-        }
-        foreach (['fecha_vuelo_salida','hora_vuelo_salida','numero_vuelo_salida','origen_vuelo_salida','hora_recogida_hotel'] as $f) {
-            if (empty($in[$f])) $errors[$f] = "Campo $f requerido para IDA_VUELTA (VUELTA)";
-        }
-    }
-
-    if ($errors) {
-        $this->json(['error'=>'VALIDATION_ERROR','details'=>$errors],400);
-        return;
-    }
-
-    // --------------------------
-    // CHECK FKs
-    // --------------------------
-    if ($idTipo && !$this->fkExists('transfer_tipo_reservas','id_tipo_reserva',(int)$idTipo)) $errors['id_tipo_reserva']='No existe';
-    if ($idHotel && !$this->fkExists('transfer_hoteles','id_hotel',(int)$idHotel)) $errors['id_hotel']='No existe';
-    if ($idDestino && !$this->fkExists('transfer_hoteles','id_hotel',(int)$idDestino)) $errors['id_destino']='No existe';
-    if ($idVehiculo && !$this->fkExists('transfer_vehiculos','id_vehiculo',(int)$idVehiculo)) $errors['id_vehiculo']='No existe';
-
-    if ($errors) {
-        $this->json(['error'=>'VALIDATION_ERROR','details'=>$errors],400);
-        return;
-    }
-
-    // Normalizar DATETIME si solo llega la hora
-if (isset($in['hora_vuelo_salida']) && strlen($in['hora_vuelo_salida']) === 5) {
-    // añadir fecha obligatoria
-    if (!empty($in['fecha_vuelo_salida'])) {
-        $in['hora_vuelo_salida'] = $in['fecha_vuelo_salida'] . ' ' . $in['hora_vuelo_salida'] . ':00';
-    }
+        if (empty($tipoOwner) || !array_key_exists('id_owner', $in)) {
+    return $this->json(['error' => 'Falta tipo_owner o id_owner'], 400);
 }
 
-    // --------------------------
-    // FECHAS FINALES
-    // --------------------------
-    $fechaEntrada = $fechaEntrada ?: date('Y-m-d');
-    $horaEntrada  = $horaEntrada  ?: '09:00:00';
 
-    $fechaSalida = $fechaSalida ?: $fechaEntrada;
-    $horaSalida  = $horaSalida  ?: '18:00:00';
+        // --------------------------
+        // 3. MAPEO TIPO DE RESERVA
+        // --------------------------
+        $tipoTxt = strtoupper(trim($in['tipo'] ?? ''));
+        $map     = ['IDA'=>1, 'VUELTA'=>2, 'IDA_VUELTA'=>3];
+        $idTipo  = $map[$tipoTxt] ?? null;
 
+        // Campos base
+        $idHotel     = isset($in['id_hotel'])    ? (int)$in['id_hotel']    : null;
+        $idDestino   = isset($in['id_destino'])  ? (int)$in['id_destino']  : null;
+        $idVehiculo  = isset($in['id_vehiculo']) ? (int)$in['id_vehiculo'] : null;
+        $pax         = isset($in['num_viajeros'])? (int)$in['num_viajeros']: null;
+        $emailCliente = $in['email_cliente'] ?? null;
 
-// NORMALIZAR hora_vuelo_salida
-// --- NORMALIZAR hora_vuelo_salida ---
-if (!empty($in['hora_vuelo_salida'])) {
+        // --------------------------
+        // 4. DATOS IDA (Aeropuerto → Hotel)
+        // --------------------------
+        $fechaEntrada   = $in['fecha_entrada']         ?? null;
+        $horaEntrada    = $in['hora_entrada']          ?? null;
+        $vueloEntrada   = $in['numero_vuelo_entrada']  ?? null;
+        $origenEntrada  = $in['origen_vuelo_entrada']  ?? null;
 
-    // Si ya incluye fecha → no tocar
-    if (preg_match('/^\d{4}-\d{2}-\d{2}/', $in['hora_vuelo_salida'])) {
-        // ya es datetime
-    } else {
-        // Solo hora, añadir fecha
-        if (!empty($in['fecha_vuelo_salida'])) {
+        // --------------------------
+        // 5. DATOS VUELTA (Hotel → Aeropuerto)
+        // --------------------------
+        $fechaSalida    = $in['fecha_vuelo_salida']    ?? null;
+        $horaVueloSalida = $in['hora_vuelo_salida']    ?? null;
 
-            $hora = $in['hora_vuelo_salida'];
-            if (strlen($hora) === 5) {
-                $hora .= ':00';
+        if ($tipoTxt === 'VUELTA') {
+            // VUELTA simple: se guarda como "entrada"
+            $fechaEntrada  = $fechaSalida;
+            $horaEntrada   = $horaVueloSalida;
+            $vueloEntrada  = $in['numero_vuelo_salida'] ?? null;
+            $origenEntrada = $in['origen_vuelo_salida'] ?? null;
+        }
+
+        if ($tipoTxt === 'IDA_VUELTA') {
+            // La VUELTA usa hora de recogida en hotel
+            $fechaEntrada  = $fechaSalida;
+            $horaEntrada   = $in['hora_recogida_hotel'] ?? null;
+            $vueloEntrada  = $in['numero_vuelo_salida'] ?? null;
+            $origenEntrada = $in['origen_vuelo_salida'] ?? null;
+        }
+
+        // --------------------------
+        // 6. VALIDACIONES
+        // --------------------------
+        $errors = [];
+
+        if (!$idTipo) {
+            $errors['tipo'] = "tipo debe ser IDA | VUELTA | IDA_VUELTA";
+        }
+
+        foreach (['id_hotel','id_destino','id_vehiculo','num_viajeros'] as $f) {
+            if (!isset($in[$f]) || !is_numeric($in[$f])) {
+                $errors[$f] = "$f es requerido y numérico";
             }
-
-            $in['hora_vuelo_salida'] = $in['fecha_vuelo_salida'].' '.$hora;
         }
-    }
+
+        if (!$emailCliente) {
+            $errors['email_cliente'] = "email_cliente es requerido";
+        } elseif (!filter_var($emailCliente, FILTER_VALIDATE_EMAIL)) {
+            $errors['email_cliente'] = "email_cliente no es válido";
+        }
+
+        // Validaciones por tipo
+        if ($tipoTxt === 'IDA') {
+            foreach (['fecha_entrada','hora_entrada','numero_vuelo_entrada','origen_vuelo_entrada'] as $f) {
+                if (empty($in[$f])) {
+                    $errors[$f] = "Campo $f requerido para IDA";
+                }
+            }
+        }
+
+        if ($tipoTxt === 'VUELTA') {
+            foreach (['fecha_vuelo_salida','hora_vuelo_salida','numero_vuelo_salida','origen_vuelo_salida'] as $f) {
+                if (empty($in[$f])) {
+                    $errors[$f] = "Campo $f requerido para VUELTA";
+                }
+            }
+        }
+
+        if ($tipoTxt === 'IDA_VUELTA') {
+            foreach (['fecha_entrada','hora_entrada','numero_vuelo_entrada','origen_vuelo_entrada'] as $f) {
+                if (empty($in[$f])) {
+                    $errors[$f] = "Campo $f requerido para IDA_VUELTA (IDA)";
+                }
+            }
+            foreach (['fecha_vuelo_salida','hora_vuelo_salida','numero_vuelo_salida','origen_vuelo_salida','hora_recogida_hotel'] as $f) {
+                if (empty($in[$f])) {
+                    $errors[$f] = "Campo $f requerido para IDA_VUELTA (VUELTA)";
+                }
+            }
+        }
+
+        if (!empty($errors)) {
+            return $this->json(['error' => 'VALIDATION_ERROR', 'details' => $errors], 400);
+        }
+
+        // --------------------------
+        // 7. CHECK FKs
+        // --------------------------
+
+        // Validar OWNER según su tipo
+
+        $tipoOwner = isset($in['tipo_owner'])
+    ? strtolower(trim($in['tipo_owner']))
+    : null;
+
+switch ($tipoOwner) {
+    case 'user':
+        if (!$this->fkExists('transfer_viajeros', 'id_viajero', $idOwner)) {
+            $errors['id_owner'] = "El viajero no existe (id_viajero=$idOwner)";
+        }
+        break;
+
+    case 'admin':
+        if (!$this->fkExists('transfer_admin', 'id_admin', $idOwner)) {
+            $errors['id_owner'] = "El admin no existe (id_admin=$idOwner)";
+        }
+        break;
+
+    case 'hotel':
+        if (!$this->fkExists('transfer_hoteles', 'id_hotel', $idOwner)) {
+            $errors['id_owner'] = "El hotel no existe (id_hotel=$idOwner)";
+        }
+        break;
+
+    default:
+        $errors['tipo_owner'] = "tipo_owner debe ser user | admin | hotel";
 }
 
-    // --------------------------
-    // INSERT
-    // --------------------------
-    $localizador = $this->generarLocalizador();
+        if (!$this->fkExists('transfer_tipo_reservas','id_tipo_reserva',(int)$idTipo)) {
+            $errors['id_tipo_reserva'] = "No existe";
+        }
 
-     $sql = "INSERT INTO transfer_reservas
-(
-    localizador,
-    id_hotel,
-    id_tipo_reserva,
-    email_cliente,
-    fecha_reserva,
-    fecha_modificacion,
-    id_destino,
-    fecha_entrada,
-    hora_entrada,
-    numero_vuelo_entrada,
-    origen_vuelo_entrada,
-    hora_vuelo_salida,
-    fecha_vuelo_salida,
-    num_viajeros,
-    id_vehiculo
-)
-VALUES (
-    ?, ?, ?, ?, NOW(), NOW(),
-    ?, ?, ?, ?, ?, ?, ?, ?, ?
-)";
+        if (!$this->fkExists('transfer_hoteles','id_hotel',(int)$idHotel)) {
+            $errors['id_hotel'] = "No existe";
+        }
 
-$params = [
-    $localizador,
-    (int)$idHotel,
-    (int)$idTipo,
-    $emailCliente,
-    (int)$idDestino,
-    $fechaEntrada,
-    $horaEntrada,
-    $vueloEntrada,
-    $origenEntrada,
-    $horaSalidaTS,
-    $fechaSalida,
-    (int)$pax,
-    (int)$idVehiculo
+        if (!$this->fkExists('transfer_hoteles','id_hotel',(int)$idDestino)) {
+            $errors['id_destino'] = "No existe";
+        }
+
+        if (!$this->fkExists('transfer_vehiculos','id_vehiculo',(int)$idVehiculo)) {
+            $errors['id_vehiculo'] = "No existe";
+        }
+
+        if (!empty($errors)) {
+            return $this->json(['error' => 'VALIDATION_ERROR', 'details' => $errors], 400);
+        }
+
+        // --------------------------
+        // 8. Normalizar horas
+        // --------------------------
+        if ($horaEntrada && strlen($horaEntrada) === 5) {
+            $horaEntrada .= ':00'; // "HH:MM" → "HH:MM:00"
+        }
+
+        if ($horaVueloSalida && strlen($horaVueloSalida) === 5) {
+            $horaVueloSalida .= ':00';
+        }
+
+        // --------------------------
+        // 9. INSERT
+        // --------------------------
+        $localizador = $this->generarLocalizador();
+
+        $sql = "INSERT INTO transfer_reservas (
+            localizador,
+            id_hotel,
+            id_tipo_reserva,
+            email_cliente,
+            fecha_reserva,
+            fecha_modificacion,
+            id_destino,
+            fecha_entrada,
+            hora_entrada,
+            numero_vuelo_entrada,
+            origen_vuelo_entrada,
+            hora_vuelo_salida,
+            fecha_vuelo_salida,
+            num_viajeros,
+            tipo_owner,
+            id_owner,
+            id_vehiculo
+        ) VALUES (
+            ?, ?, ?, ?, NOW(), NOW(),
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )";
+
+        $params = [
+    $localizador,          // 1 localizador
+    (int)$idHotel,         // 2 id_hotel
+    (int)$idTipo,          // 3 id_tipo_reserva
+    $emailCliente,         // 4 email_cliente
+    // 5 NOW() → fecha_reserva
+    // 6 NOW() → fecha_modificacion
+    (int)$idDestino,       // 7 id_destino
+    $fechaEntrada,         // 8 fecha_entrada
+    $horaEntrada,          // 9 hora_entrada
+    $vueloEntrada,         // 10 numero_vuelo_entrada
+    $origenEntrada,        // 11 origen_vuelo_entrada
+    $horaVueloSalida,      // 12 hora_vuelo_salida
+    $fechaSalida,          // 13 fecha_vuelo_salida
+    (int)$pax,             // 14 num_viajeros
+    $tipoOwner,            // 15 tipo_owner
+    (int)$idOwner,         // 16 id_owner
+    (int)$idVehiculo       // 17 id_vehiculo
 ];
 
 
-    $st = DB::pdo()->prepare($sql);
-    $st->execute($params);
+        $st = DB::pdo()->prepare($sql);
+        if (!$st->execute($params)) {
+            // Debug de error SQL si algo falla
+            return $this->json([
+                'error'    => 'SQL_ERROR',
+                'info'     => $st->errorInfo(),
+                'params'   => $params
+            ], 500);
+        }
 
-    $reservaId = (int)DB::pdo()->lastInsertId();
+        return $this->json([
+            'id'          => DB::pdo()->lastInsertId(),
+            'localizador' => $localizador,
+            'tipo'        => $tipoTxt
+        ], 201);
 
-    $this->json([
-        'id' => $reservaId,
-        'localizador' => $localizador,
-        'tipo' => $tipoTxt
-    ],201);
+    } catch (\Throwable $e) {
+        http_response_code(500);
+        return $this->json([
+            "php_error" => $e->getMessage(),
+            "line"      => $e->getLine(),
+            "file"      => $e->getFile()
+        ]);
+    }
 }
+
 
 public function update($id) {
     try {

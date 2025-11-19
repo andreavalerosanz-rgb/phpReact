@@ -32,34 +32,34 @@ export function LoginForm({ className, ...props }) {
   }
 
   const handleSubmit = async (e) => {
-  e.preventDefault()
+    e.preventDefault()
 
-  try {
-    const mapped = mapLoginToBackend(formData) // { email, password }
-    console.log("JSON LOGIN generado:", mapped)
+    try {
+      const mapped = mapLoginToBackend(formData) // { email, password }
+      console.log("JSON LOGIN generado:", mapped)
 
-    const data = await apiLogin(mapped)
-    // data = { role, name, userId, token }
+      const data = await apiLogin(mapped)
+      // data = { role, name, userId, token }
 
-    // Guardar sesión
-    localStorage.setItem("token", data.token)
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        id: data.userId,
-        name: data.name,
-        role: data.role,
-        email: mapped.email,
-      })
-    )
+      // Guardar sesión
+      localStorage.setItem("token", data.token)
+      localStorage.setItem(
+        "userData",
+        JSON.stringify({
+          id: data.userId,       // ← FALTA ESTO
+          name: data.name,
+          email: mapped.email,
+          type: data.role
+        })
+      )
 
-    // 🔹 DE MOMENTO: todos al mismo dashboard
-    navigate("/dashboard")
-  } catch (err) {
-    console.error("Error en login:", err)
-    alert("Email o contraseña incorrectos")
+      // 🔹 DE MOMENTO: todos al mismo dashboard
+      navigate("/dashboard")
+    } catch (err) {
+      console.error("Error en login:", err)
+      alert("Email o contraseña incorrectos")
+    }
   }
-}
 
 
   return (

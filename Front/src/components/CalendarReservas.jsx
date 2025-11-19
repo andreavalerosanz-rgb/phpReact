@@ -11,8 +11,6 @@ import {
   subWeeks,
   addMonths,
   subMonths,
-  startOfMonth,
-  endOfMonth,
 } from "date-fns"
 import { es } from "date-fns/locale"
 import { DayPicker, getDefaultClassNames } from "react-day-picker"
@@ -34,40 +32,92 @@ const tipoColor = {
   "hotel-aeropuerto": "bg-blue-500",
   "ida-vuelta": "bg-orange-500",
 }
+
+// ==============================
+// Helpers para evitar duplicidad
+// ==============================
+
+// rango del mes actual
+const pad = (n) => (n < 10 ? "0" + n : n);
+
+const getMonthRange = (date) => {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+
+  const first = `${year}-${pad(month + 1)}-01`;
+
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const last = `${year}-${pad(month + 1)}-${pad(lastDay)}`;
+
+  return { first, last };
+};
+
+
+// crea la URL correcta
+const buildUrl = (user, currentDate) => {
+  const { first, last } = getMonthRange(currentDate)
+  const base = "http://localhost:8080/api/calendar/events?"
+
+  let query = ""
+
+  if (user.type === "user") query = `role=user&owner=${user.id}`
+  else if (user.type === "hotel") query = `role=hotel&owner=${user.hotel_id}`
+  else if (user.type === "admin") query = `role=admin&owner=${user.id}`
+
+  return `${base}${query}&from=${first}&to=${last}`
+}
+
+const parseFechaLocal = (str) => {
+  const [y, m, d] = str.split("-")
+  return new Date(Number(y), Number(m) - 1, Number(d))
+}
+
+// adaptar reserva
+const parseReserva = (ev) => ({
+  id: ev.id,
+  fecha: new Date(ev.start),
+  servicio: ev.localizador,
+  tipo:
+    ev.color === "#4caf50"
+      ? "aeropuerto-hotel"
+      : ev.color === "#1976d2"
+        ? "hotel-aeropuerto"
+        : "ida-vuelta",
+})
+
+
 export function CalendarReservas() {
 
   const [reservas, setReservas] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const eventosDia = (date) =>
-    reservas.filter((e) => isSameDay(new Date(e.fecha), date))
+  const [view, setView] = useState("week")
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDay, setSelectedDay] = useState(null)
 
+  const eventosDia = (date) =>
+    reservas.filter((e) => isSameDay(e.fecha, date))
+
+  // ==============================
+  // CARGAR RESERVAS
+  // ==============================
   useEffect(() => {
     const cargarReservas = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/calendar/events")
+        const user = JSON.parse(localStorage.getItem("userData"))
+        if (!user) return
 
+        const url = buildUrl(user, currentDate)
+        console.log("URL FINAL:", url)
+
+        const response = await fetch(url)
         if (!response.ok) throw new Error("Error al obtener reservas")
+
         const data = await response.json()
+        console.log("RESERVAS FILTRADAS:", data)
 
-        console.log("RESERVAS RAW:", data)
+        setReservas(data.map(parseReserva))
 
-        // Adaptar backend → formato frontend
-        const reservasAdaptadas = data.map(ev => ({
-          id: ev.id,
-          fecha: ev.start,
-          servicio: ev.localizador,
-          tipo:
-            ev.color === "#4caf50"
-              ? "aeropuerto-hotel"
-              : ev.color === "#1976d2"
-                ? "hotel-aeropuerto"
-                : "ida-vuelta",
-        }))
-
-        console.log("RESERVAS ADAPTADAS:", reservasAdaptadas)
-
-        setReservas(reservasAdaptadas)
       } catch (err) {
         setError(err.message)
       } finally {
@@ -76,12 +126,10 @@ export function CalendarReservas() {
     }
 
     cargarReservas()
-  }, [])
+  }, [currentDate])
 
-  const [view, setView] = useState("week") // month | week | day
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [selectedDay, setSelectedDay] = useState(null)
   const navigate = useNavigate()
+
   // === VISTA SEMANAL ===
   const renderSemana = () => {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 })
@@ -124,7 +172,6 @@ export function CalendarReservas() {
                       {ev.servicio}
                     </div>
                   ))
-
                 )}
               </div>
             </div>
@@ -163,8 +210,6 @@ export function CalendarReservas() {
                 className={`cursor-pointer p-2 rounded-md text-white ${tipoColor[e.tipo]}`}
                 onClick={() => navigate(`/calendario/reserva/${e.id}`)}
               >
-
-
                 <div className="font-semibold">
                   {format(e.fecha, "HH:mm")} – {e.servicio}
                 </div>
@@ -197,6 +242,7 @@ export function CalendarReservas() {
 
         <div className="flex w-full max-w-xl gap-4 h-[290px]">
           <DayPicker
+            key={currentDate.toISOString()}
             locale={es}
             selected={selectedDay}
             onDayClick={setSelectedDay}
@@ -230,12 +276,9 @@ export function CalendarReservas() {
             components={{
               Chevron: () => null,
               DayButton: ({ day, modifiers, ...props }) => {
-                const fechaDia = day.date.toDateString()
                 const eventosDelDia = reservas.filter(
                   (e) => new Date(e.fecha).toDateString() === day.date.toDateString()
                 )
-
-
 
                 return (
                   <Button
@@ -280,11 +323,12 @@ export function CalendarReservas() {
                   {format(selectedDay, "d 'de' MMMM yyyy", { locale: es })}
                 </h3>
                 {(() => {
-                  const eventosDelDia = selectedDay
-                    ? reservas.filter(
-                      (e) => new Date(e.fecha).toDateString() === selectedDay.toDateString()
-                    )
-                    : []
+                  const eventosDelDia = reservas.filter(
+                    (e) =>
+                      new Date(e.fecha).toDateString() ===
+                      selectedDay.toDateString()
+                  )
+
                   return eventosDelDia.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
                       No hay traslados para este día.

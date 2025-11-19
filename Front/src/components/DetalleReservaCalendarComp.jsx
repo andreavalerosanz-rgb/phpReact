@@ -21,14 +21,26 @@ const tipoColor = {
    Obtener la fecha/hora principal según el tipo
 --------------------------------------------- */
 function getFechaPrincipal(reserva) {
-  if (reserva.fechaLlegada && reserva.horaLlegada)
+  // si llega fecha y hora correctas, OK
+  if (reserva.fechaLlegada && reserva.horaLlegada) {
     return `${reserva.fechaLlegada}T${reserva.horaLlegada}`
+  }
 
-  if (reserva.fechaVuelta && reserva.horaVueloSalida)
+  if (reserva.fechaVuelta && reserva.horaVueloSalida) {
     return `${reserva.fechaVuelta}T${reserva.horaVueloSalida}`
+  }
 
-  return reserva.fecha // fallback para las reservas simples del mock
+  // fallback si viene solo fecha sin hora
+  if (reserva.fecha) {
+    return reserva.fecha.includes("T")
+      ? reserva.fecha
+      : `${reserva.fecha}T00:00:00`
+  }
+
+  // última protección: fecha válida por defecto
+  return new Date().toISOString()
 }
+
 
 /* ---------------------------------------------
    Componente principal
@@ -111,12 +123,18 @@ export default function DetalleReservaCalendarComp({ id }) {
 
           <p>
             <strong>Fecha:</strong>{" "}
-            {format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })}
+            {fechaPrincipal && !isNaN(new Date(fechaPrincipal))
+              ? format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })
+              : "Fecha no disponible"}
+
           </p>
 
           <p>
             <strong>Hora:</strong>{" "}
-            {format(new Date(fechaPrincipal), "HH:mm")}h
+            {fechaPrincipal && !isNaN(new Date(fechaPrincipal))
+              ? format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })
+              : "Fecha no disponible"}
+
           </p>
 
           <p><strong>Origen:</strong> {reserva.origen}</p>
@@ -149,7 +167,10 @@ export default function DetalleReservaCalendarComp({ id }) {
 
             <p>
               <strong>Fecha:</strong>{" "}
-              {format(new Date(reserva.vuelta.fecha), "d 'de' MMMM yyyy", { locale: es })}
+              {fechaPrincipal && !isNaN(new Date(fechaPrincipal))
+                ? format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })
+                : "Fecha no disponible"}
+
             </p>
 
             <p><strong>Origen:</strong> {reserva.vuelta.origen}</p>
