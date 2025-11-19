@@ -14,7 +14,6 @@ const PerfilUsuario = () => {
 
   const localUser = JSON.parse(localStorage.getItem("userData")) || {}
 
-  // 🔥 token estable aunque el componente se renderice varias veces
   const tokenRef = useRef(localStorage.getItem("token"))
 
   useEffect(() => {
@@ -22,7 +21,6 @@ const PerfilUsuario = () => {
       const token = tokenRef.current
 
       if (!token) {
-        console.warn("No token found, redirecting to login")
         window.location.href = "/login"
         return
       }
@@ -36,23 +34,17 @@ const PerfilUsuario = () => {
           }
         })
 
-
-
         if (res.status === 401) {
-          console.error("❌ 401 — Token inválido o no aceptado por el backend");
-          const text = await res.text();
-          console.error("Respuesta backend:", text);
-
-          setUser({ error: "401", message: text });
-          setLoading(false);
-          return;
+          const text = await res.text()
+          setUser({ error: "401", message: text })
+          setLoading(false)
+          return
         }
-
 
         const data = await res.json()
 
-        let detectedType = "admin"
-        if (data.role === "user") detectedType = "user"
+        // detectar el tipo solo una vez
+        let detectedType = data.role || "admin"
         if ("email_hotel" in data) detectedType = "hotel"
         if ("email_admin" in data) detectedType = "admin"
 
@@ -73,16 +65,19 @@ const PerfilUsuario = () => {
 
 
   const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    setUser(prev => ({
+      ...prev,
+      [name]: value
+    }))
   }
 
-  const handleSave = async () => {
 
-    // Validación contraseña
+  const handleSave = async () => {
     if (user.password && user.password.length > 0) {
       if (user.password !== confirmPassword) {
-        toast.error("Las contraseñas no coinciden.");
-        return;
+        toast.error("Las contraseñas no coinciden.")
+        return
       }
     }
 
@@ -94,13 +89,12 @@ const PerfilUsuario = () => {
           "Authorization": `Bearer ${tokenRef.current}`
         },
         body: JSON.stringify(user),
-      });
+      })
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error()
 
-      toast.success("Perfil actualizado correctamente.");
+      toast.success("Perfil actualizado correctamente.")
 
-      // Actualizar localStorage
       localStorage.setItem(
         "userData",
         JSON.stringify({
@@ -108,15 +102,14 @@ const PerfilUsuario = () => {
           name: user.nombre,
           email: user.email || user.email_hotel || user.email_admin
         })
-      );
+      )
 
-      // Limpiar confirmación
-      setConfirmPassword("");
+      setConfirmPassword("")
 
     } catch (err) {
-      toast.error("Error al guardar.");
+      toast.error("Error al guardar.")
     }
-  };
+  }
 
 
   if (loading || !user)
@@ -128,16 +121,18 @@ const PerfilUsuario = () => {
 
   const type = user.type
 
+
   const Field = ({ label, name, type = "text", value, placeholder }) => (
-    <div className="!px-5">
+    <div className="!px-5" key={name}>
       <Label className="text-gray-700 text-sm font-medium mb-1 block">
         {label}
       </Label>
       <Input
+        key={name}
         className="mt-1"
         name={name}
         type={type}
-        value={value || ""}
+        value={value ?? ""}
         placeholder={placeholder || ""}
         onChange={handleChange}
       />
@@ -148,7 +143,7 @@ const PerfilUsuario = () => {
   return (
     <DashboardLayout>
       <main className="flex-1 flex justify-center items-start p-6 md:p-4!">
-        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-md border border-gray-100 p-4!">
+        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-md border border-gray-100 !p-4">
 
           {/* HEADER */}
           <div className="flex flex-col items-center text-center mb-6 pt-4">
@@ -159,7 +154,6 @@ const PerfilUsuario = () => {
               Perfil de {type === "user" ? "usuario" : type === "hotel" ? "hotel" : "administrador"}
             </h2>
 
-            {/* SUBTÍTULO */}
             <p className="text-gray-500 mt-1 text-sm">
               Aquí puedes editar tu información
             </p>
@@ -171,7 +165,7 @@ const PerfilUsuario = () => {
 
             {/* USER */}
             {type === "user" && (
-              <div className="grid sm:grid-cols-2 gap-6">
+              <div key="user-form" className="grid sm:grid-cols-2 gap-6">
                 <Field label="Nombre" name="nombre" value={user.nombre} />
                 <Field label="Apellido 1" name="apellido1" value={user.apellido1} />
                 <Field label="Apellido 2" name="apellido2" value={user.apellido2} />
@@ -180,6 +174,7 @@ const PerfilUsuario = () => {
                 <Field label="Ciudad" name="ciudad" value={user.ciudad} />
                 <Field label="País" name="pais" value={user.pais} />
                 <Field label="Email" name="email" value={user.email} />
+
                 <Field
                   label="Contraseña"
                   name="password"
@@ -187,11 +182,12 @@ const PerfilUsuario = () => {
                   placeholder="Modificar contraseña"
                 />
 
-                <div className="!px-5">
+                <div className="!px-5" key="confirm-pass-user">
                   <Label className="text-gray-700 text-sm font-medium mb-1 block">
                     Confirmar contraseña
                   </Label>
                   <Input
+                    key="confirm-password-user"
                     className="mt-1"
                     type="password"
                     placeholder="Confirmar la contraseña"
@@ -199,15 +195,15 @@ const PerfilUsuario = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
                 </div>
-
               </div>
             )}
 
             {/* HOTEL */}
             {type === "hotel" && (
-              <div className="grid sm:grid-cols-2 gap-6">
+              <div key="hotel-form" className="grid sm:grid-cols-2 gap-6">
                 <Field label="Nombre del hotel" name="nombre" value={user.nombre} />
                 <Field label="Email" name="email_hotel" value={user.email_hotel} />
+
                 <Field
                   label="Contraseña"
                   name="password"
@@ -215,11 +211,12 @@ const PerfilUsuario = () => {
                   placeholder="Modificar contraseña"
                 />
 
-                <div className="!px-5">
+                <div className="!px-5" key="confirm-pass-hotel">
                   <Label className="text-gray-700 text-sm font-medium mb-1 block">
                     Confirmar contraseña
                   </Label>
                   <Input
+                    key="confirm-password-hotel"
                     className="mt-1"
                     type="password"
                     placeholder="Confirmar la contraseña"
@@ -227,15 +224,15 @@ const PerfilUsuario = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
                 </div>
-
               </div>
             )}
 
             {/* ADMIN */}
             {type === "admin" && (
-              <div className="grid sm:grid-cols-2 gap-6">
+              <div key="admin-form" className="grid sm:grid-cols-2 gap-6">
                 <Field label="Nombre" name="nombre" value={user.nombre} />
                 <Field label="Email" name="email_admin" value={user.email_admin} />
+
                 <Field
                   label="Contraseña"
                   name="password"
@@ -243,11 +240,12 @@ const PerfilUsuario = () => {
                   placeholder="Modificar contraseña"
                 />
 
-                <div className="!px-5">
+                <div className="!px-5" key="confirm-pass-admin">
                   <Label className="text-gray-700 text-sm font-medium mb-1 block">
                     Confirmar contraseña
                   </Label>
                   <Input
+                    key="confirm-password-admin"
                     className="mt-1"
                     type="password"
                     placeholder="Confirmar la contraseña"
@@ -255,12 +253,11 @@ const PerfilUsuario = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
                 </div>
-
               </div>
             )}
 
             {/* BOTÓN */}
-            <div className="mt-4! py-8 text-center">
+            <div className="!mt-4 py-8 text-center">
               <Button
                 onClick={handleSave}
                 className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"

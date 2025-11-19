@@ -44,20 +44,8 @@ const menus = {
 }
 
 export const DashboardLayout = ({ children, currentUser }) => {
-  const [userType, setUserType] = useState(null)
-
-  useEffect(() => {
   const storedType = localStorage.getItem("userType");
-
-  const mapped =
-    ROLE_MAP[storedType] || "particular";
-
-  setUserType(mapped);
-}, []);
-
-
-
-  if (!userType) return null
+  const userType = ROLE_MAP[storedType] || "particular";
 
   return (
     <div className="min-h-screen w-full flex bg-gray-50 text-gray-900 overflow-hidden">
