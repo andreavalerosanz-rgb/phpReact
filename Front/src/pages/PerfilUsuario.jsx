@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { DashboardLayout } from "@/components/dashboardLayout"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,29 +13,39 @@ const PerfilUsuario = () => {
 
   const localUser = JSON.parse(localStorage.getItem("userData")) || {}
 
+  // 🔥 token estable aunque el componente se renderice varias veces
+  const tokenRef = useRef(localStorage.getItem("token"))
+
   useEffect(() => {
     const loadProfile = async () => {
+      const token = tokenRef.current
+
+      if (!token) {
+        console.warn("No token found, redirecting to login")
+        window.location.href = "/login"
+        return
+      }
+
       try {
-        const token = localStorage.getItem("token")
-
-        if (!token) {
-          console.warn("No token found, redirecting to login")
-          window.location.href = "/login"
-          return
-        }
-
         const res = await fetch("http://localhost:8080/api/profile", {
-          headers: {
+          method: "GET",
+          headers: new Headers({
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
-          }
-        })
+          }),
+        });
+
 
         if (res.status === 401) {
-          console.warn("Token inválido → redirigiendo")
-          window.location.href = "/login"
-          return
+          console.error("❌ 401 — Token inválido o no aceptado por el backend");
+          const text = await res.text();
+          console.error("Respuesta backend:", text);
+
+          setUser({ error: "401", message: text });
+          setLoading(false);
+          return;
         }
+
 
         const data = await res.json()
 
@@ -48,6 +58,7 @@ const PerfilUsuario = () => {
           ...data,
           type: detectedType
         })
+
       } catch (err) {
         console.error("Error cargando perfil", err)
       } finally {
@@ -58,6 +69,7 @@ const PerfilUsuario = () => {
     loadProfile()
   }, [])
 
+
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value })
   }
@@ -66,9 +78,13 @@ const PerfilUsuario = () => {
     try {
       const res = await fetch("http://localhost:8080/api/profile", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: new Headers({
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${tokenRef.current}`
+        }),
         body: JSON.stringify(user),
-      })
+      });
+
 
       if (!res.ok) throw new Error()
 

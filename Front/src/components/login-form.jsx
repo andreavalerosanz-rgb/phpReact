@@ -39,26 +39,18 @@ export default function LoginForm({ className, ...props }) {
         password: formData.password,
       });
 
-      // Guarda el token
       localStorage.setItem("token", data.token);
 
-      // Decodificar JWT
-      const [header, payload] = data.token.split(".");
-      const decoded = JSON.parse(atob(payload));
-
-      const role = decoded.role;     // "user" | "hotel" | "admin"
-      const userId = decoded.userId;
-      const email = decoded.email;
-
-      localStorage.setItem("userType", role);
+      // Usa los datos del backend, NO decodifiques el JWT
+      localStorage.setItem("userType", data.type);
 
       localStorage.setItem(
         "userData",
         JSON.stringify({
-          id: userId,
+          id: data.userId,
           name: data.name,
-          email,
-          type: role,
+          email: data.email,
+          type: data.type,
         })
       );
 
@@ -67,6 +59,7 @@ export default function LoginForm({ className, ...props }) {
       alert("Credenciales incorrectas");
     }
   };
+
 
 
   return (

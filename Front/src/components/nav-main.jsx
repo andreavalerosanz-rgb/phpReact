@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -16,12 +17,13 @@ export function NavMain({ items }) {
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title}>
                 {item.icon && <item.icon />}
-                <a
-                  href={item.url}
+                <Link
+                  to={item.url}
                   style={{ textDecoration: "none", color: "inherit" }}
+                  className="w-full block"
                 >
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

@@ -1,6 +1,11 @@
 Options -Indexes
 RewriteEngine On
 
+# Necesario para que PHP reciba Authorization (TIENE QUE IR ARRIBA)
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%1]
+
+# Resto de reglas
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^ index.php [QSA,L]

@@ -5,6 +5,7 @@ import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { Link } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -26,16 +27,16 @@ export function AppSidebar({
   const [open, setOpen] = useState(false) // Para mobile toggle
 
   React.useEffect(() => {
-const setUserFromStorage = () => {
-  const storedUser = JSON.parse(localStorage.getItem("userData"))
-  if (storedUser) {
-    user = {
-      ...storedUser,
+    const setUserFromStorage = () => {
+      const storedUser = JSON.parse(localStorage.getItem("userData"))
+      if (storedUser) {
+        user = {
+          ...storedUser,
+        }
+      }
     }
-  }
-}
 
-setUserFromStorage()
+    setUserFromStorage()
   }, [])
 
 
@@ -61,10 +62,10 @@ setUserFromStorage()
           <SidebarMenu className="p-1">
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-0">
-                <a href="/">
+                <Link to="/dashboard">
                   <IconInnerShadowTop className="!size-5" />
                   <span className="text-base font-semibold">{companyName}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

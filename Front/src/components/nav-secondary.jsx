@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react"
-
+import { Link } from "react-router-dom"
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -20,10 +20,14 @@ export function NavSecondary({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url}>
+                <Link
+                  to={item.url}
+                  style={{ textDecoration: "none", color: "inherit" }}
+                  className="flex items-center gap-2 w-full"
+                >
                   <item.icon />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
