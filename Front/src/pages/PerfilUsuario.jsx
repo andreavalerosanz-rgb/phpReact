@@ -13,13 +13,11 @@ const PerfilUsuario = () => {
   const [loading, setLoading] = useState(true)
 
   const localUser = JSON.parse(localStorage.getItem("userData")) || {}
-
   const tokenRef = useRef(localStorage.getItem("token"))
 
   useEffect(() => {
     const loadProfile = async () => {
       const token = tokenRef.current
-
       if (!token) {
         window.location.href = "/login"
         return
@@ -43,15 +41,11 @@ const PerfilUsuario = () => {
 
         const data = await res.json()
 
-        // detectar el tipo solo una vez
         let detectedType = data.role || "admin"
         if ("email_hotel" in data) detectedType = "hotel"
         if ("email_admin" in data) detectedType = "admin"
 
-        setUser({
-          ...data,
-          type: detectedType
-        })
+        setUser({ ...data, type: detectedType })
 
       } catch (err) {
         console.error("Error cargando perfil", err)
@@ -123,12 +117,11 @@ const PerfilUsuario = () => {
 
 
   const Field = ({ label, name, type = "text", value, placeholder }) => (
-    <div className="!px-5" key={name}>
+    <div className="!px-5">
       <Label className="text-gray-700 text-sm font-medium mb-1 block">
         {label}
       </Label>
       <Input
-        key={name}
         className="mt-1"
         name={name}
         type={type}
@@ -165,30 +158,142 @@ const PerfilUsuario = () => {
 
             {/* USER */}
             {type === "user" && (
-              <div key="user-form" className="grid sm:grid-cols-2 gap-6">
-                <Field label="Nombre" name="nombre" value={user.nombre} />
-                <Field label="Apellido 1" name="apellido1" value={user.apellido1} />
-                <Field label="Apellido 2" name="apellido2" value={user.apellido2} />
-                <Field label="Dirección" name="direccion" value={user.direccion} />
-                <Field label="Código Postal" name="codigoPostal" value={user.codigoPostal} />
-                <Field label="Ciudad" name="ciudad" value={user.ciudad} />
-                <Field label="País" name="pais" value={user.pais} />
-                <Field label="Email" name="email" value={user.email} />
+              <div className="grid sm:grid-cols-2 gap-6">
 
-                <Field
-                  label="Contraseña"
-                  name="password"
-                  type="password"
-                  placeholder="Modificar contraseña"
-                />
+                {/* NOMBRE */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Nombre
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="nombre"
+                    type="text"
+                    value={user.nombre || ""}
+                    onChange={handleChange}
+                  />
+                </div>
 
-                <div className="!px-5" key="confirm-pass-user">
+                {/* APELLIDO 1 */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Apellido 1
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="apellido1"
+                    type="text"
+                    value={user.apellido1 || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* APELLIDO 2 */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Apellido 2
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="apellido2"
+                    type="text"
+                    value={user.apellido2 || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* DIRECCIÓN */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Dirección
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="direccion"
+                    type="text"
+                    value={user.direccion || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* CÓDIGO POSTAL */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Código Postal
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="codigoPostal"
+                    type="text"
+                    value={user.codigoPostal || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* CIUDAD */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Ciudad
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="ciudad"
+                    type="text"
+                    value={user.ciudad || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* PAÍS */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    País
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="pais"
+                    type="text"
+                    value={user.pais || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* EMAIL */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Email
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="email"
+                    type="email"
+                    value={user.email || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* PASSWORD */}
+                <div className="!px-5">
+                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
+                    Contraseña
+                  </Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="password"
+                    type="password"
+                    placeholder="Modificar contraseña"
+                    value={user.password || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* CONFIRMAR PASSWORD */}
+                <div className="!px-5">
                   <Label className="text-gray-700 text-sm font-medium mb-1 block">
                     Confirmar contraseña
                   </Label>
-                  <Input
-                    key="confirm-password-user"
-                    className="mt-1"
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
                     type="password"
                     placeholder="Confirmar la contraseña"
                     value={confirmPassword}
@@ -200,24 +305,50 @@ const PerfilUsuario = () => {
 
             {/* HOTEL */}
             {type === "hotel" && (
-              <div key="hotel-form" className="grid sm:grid-cols-2 gap-6">
-                <Field label="Nombre del hotel" name="nombre" value={user.nombre} />
-                <Field label="Email" name="email_hotel" value={user.email_hotel} />
+              <div className="grid sm:grid-cols-2 gap-6">
 
-                <Field
-                  label="Contraseña"
-                  name="password"
-                  type="password"
-                  placeholder="Modificar contraseña"
-                />
+                {/* NOMBRE HOTEL */}
+                <div className="!px-5">
+                  <Label>Nombre del hotel</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="nombre"
+                    type="text"
+                    value={user.nombre || ""}
+                    onChange={handleChange}
+                  />
+                </div>
 
-                <div className="!px-5" key="confirm-pass-hotel">
-                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
-                    Confirmar contraseña
-                  </Label>
-                  <Input
-                    key="confirm-password-hotel"
-                    className="mt-1"
+                {/* EMAIL HOTEL */}
+                <div className="!px-5">
+                  <Label>Email</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="email_hotel"
+                    type="email"
+                    value={user.email_hotel || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* PASSWORD */}
+                <div className="!px-5">
+                  <Label>Contraseña</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="password"
+                    type="password"
+                    placeholder="Modificar contraseña"
+                    value={user.password || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* CONFIRMAR PASSWORD */}
+                <div className="!px-5">
+                  <Label>Confirmar contraseña</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
                     type="password"
                     placeholder="Confirmar la contraseña"
                     value={confirmPassword}
@@ -229,24 +360,46 @@ const PerfilUsuario = () => {
 
             {/* ADMIN */}
             {type === "admin" && (
-              <div key="admin-form" className="grid sm:grid-cols-2 gap-6">
-                <Field label="Nombre" name="nombre" value={user.nombre} />
-                <Field label="Email" name="email_admin" value={user.email_admin} />
+              <div className="grid sm:grid-cols-2 gap-6">
 
-                <Field
-                  label="Contraseña"
-                  name="password"
-                  type="password"
-                  placeholder="Modificar contraseña"
-                />
+                <div className="!px-5">
+                  <Label>Nombre</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="nombre"
+                    type="text"
+                    value={user.nombre || ""}
+                    onChange={handleChange}
+                  />
+                </div>
 
-                <div className="!px-5" key="confirm-pass-admin">
-                  <Label className="text-gray-700 text-sm font-medium mb-1 block">
-                    Confirmar contraseña
-                  </Label>
-                  <Input
-                    key="confirm-password-admin"
-                    className="mt-1"
+                <div className="!px-5">
+                  <Label>Email</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="email_admin"
+                    type="email"
+                    value={user.email_admin || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="!px-5">
+                  <Label>Contraseña</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
+                    name="password"
+                    type="password"
+                    placeholder="Modificar contraseña"
+                    value={user.password || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="!px-5">
+                  <Label>Confirmar contraseña</Label>
+                  <input
+                    className="mt-1 border border-gray-300 rounded px-3 py-2 w-full"
                     type="password"
                     placeholder="Confirmar la contraseña"
                     value={confirmPassword}
@@ -267,9 +420,10 @@ const PerfilUsuario = () => {
                 Guardar Cambios
               </Button>
             </div>
-          </form>
-        </div>
 
+          </form>
+
+        </div>
         <ToastContainer />
       </main>
     </DashboardLayout>
