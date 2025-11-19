@@ -43,39 +43,31 @@ class UserController extends Controller {
      * GET /api/user/{id}/reservas
      */
     public function reservas($userId) {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $role = $input['role'] ?? null;
 
-        if ($role !== 'user') {
-            $this->json(['error' => 'No autorizado'], 403);
-            return;
-        }
+    
+        $st = DB::pdo()->prepare("SELECT email_viajero FROM transfer_viajeros WHERE id_viajero = ?");
+    $st->execute([(int)$userId]);
+    $viajero = $st->fetch();
 
-        // Buscar email del viajero según ID
-        $st = DB::pdo()->prepare("SELECT * FROM transfer_viajeros WHERE id_viajero = ?");
-        $st->execute([(int)$userId]);
-        $user = $st->fetch();
-
-        if (!$user) {
-            $this->json(['error' => 'Usuario no encontrado', 'id_viajero' => $userId]);
-            return;
-        }
-
-        $userEmail = $user['email_viajero'];
-
-        $sql = "SELECT * FROM transfer_reservas WHERE email_cliente = ? ORDER BY id_reserva DESC";
-        $st = DB::pdo()->prepare($sql);
-        $st->execute([$userEmail]);
-        $reservas = $st->fetchAll();
-
-        // DEBUG: mostrar info
-        $this->json([
-            'debug_id_viajero' => $userId,
-            'debug_email' => $userEmail,
-            'reservas_count' => count($reservas),
-            'reservas' => $reservas
-        ]);
+    if (!$viajero) {
+        $this->json(['error' => 'Viajero no encontrado', 'id_viajero' => $userId], 404);
+        return;
     }
+
+    $email = $viajero['email_viajero'];
+
+    // 2) Buscar reservas por email
+    $sql = "SELECT * FROM transfer_reservas
+            WHERE email_cliente = ?
+            ORDER BY id_reserva DESC";
+
+    $st = DB::pdo()->prepare($sql);
+    $st->execute([$email]);
+    $reservas = $st->fetchAll();
+
+    // 3) Devolver resultado limpio
+    $this->json($reservas);
+}
 
     /**
      * Calendario de reservas de un usuario

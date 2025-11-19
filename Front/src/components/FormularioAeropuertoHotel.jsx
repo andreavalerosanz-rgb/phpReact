@@ -141,153 +141,158 @@ export default function FormularioAeropuertoHotel({ onCancel }) {
                             }}
                         />
                     ) : (
-                        <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
+                        <>
+                            <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
 
-                            <Field>
-                                <FieldLabel>Fecha de llegada</FieldLabel>
-                                <Input
-                                    type="date"
-                                    min={hoy}
-                                    value={form.fechaLlegada}
-                                    onChange={(e) => {
-                                        const valor = e.target.value;
-                                        if (valor < hoy) {
-                                            setErrorFecha("⚠️ La fecha no puede ser anterior a hoy.");
-                                            return setForm({ ...form, fechaLlegada: "" });
+
+                                <Field>
+                                    <FieldLabel>Fecha de llegada</FieldLabel>
+                                    <Input
+                                        type="date"
+                                        min={hoy}
+                                        value={form.fechaLlegada}
+                                        onChange={(e) => {
+                                            const valor = e.target.value;
+                                            if (valor < hoy) {
+                                                setErrorFecha("⚠️ La fecha no puede ser anterior a hoy.");
+                                                return setForm({ ...form, fechaLlegada: "" });
+                                            }
+                                            setErrorFecha("");
+                                            setForm({ ...form, fechaLlegada: valor });
+                                        }}
+                                    />
+                                    {errorFecha && <p className="text-sm text-red-600 mt-1">{errorFecha}</p>}
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>Hora de llegada</FieldLabel>
+                                    <Input type="time"
+                                        value={form.horaLlegada}
+                                        onChange={(e) => setForm({ ...form, horaLlegada: e.target.value })} />
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>Número de vuelo</FieldLabel>
+                                    <Input placeholder="Ej. IB1234"
+                                        value={form.vuelo}
+                                        onChange={(e) => setForm({ ...form, vuelo: e.target.value })} />
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>Aeropuerto de origen</FieldLabel>
+                                    <Input placeholder="Ej. Madrid-Barajas (MAD)"
+                                        value={form.aeropuertoOrigen}
+                                        onChange={(e) => setForm({ ...form, aeropuertoOrigen: e.target.value })} />
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>Hotel de destino</FieldLabel>
+                                    <Select
+                                        value={form.hotel}
+                                        onValueChange={(v) => setForm({ ...form, hotel: v })}
+                                    >
+                                        <SelectTrigger className="h-11 rounded-lg!">
+                                            <SelectValue placeholder="Selecciona un hotel" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {hoteles.map((hotel) => (
+                                                <SelectItem key={hotel.id_hotel} value={hotel.id_hotel}>
+                                                    {hotel.nombre}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
+
+                                <Field>
+                                    <FieldLabel>Vehículo</FieldLabel>
+                                    <Select
+                                        value={form.vehiculo}
+                                        onValueChange={(v) => setForm({ ...form, vehiculo: v })}
+                                    >
+                                        <SelectTrigger className="h-11 rounded-lg!">
+                                            <SelectValue placeholder="Selecciona un vehículo" />
+                                        </SelectTrigger>
+
+                                        <SelectContent>
+                                            {vehiculos.map((v) => (
+                                                <SelectItem key={v.id_vehiculo} value={String(v.id_vehiculo)}>
+                                                    {v["Descripción"]}
+                                                </SelectItem>
+                                            ))}
+
+                                        </SelectContent>
+                                    </Select>
+                                </Field>
+
+                                <Field>
+                                    <div className="flex items-center gap-2">
+                                        <FieldLabel className="m-0">Número de viajeros</FieldLabel>
+
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <button className="size-6 flex items-center justify-center rounded-full">
+                                                    <Info className="size-4" />
+                                                </button>
+                                            </TooltipTrigger>
+
+                                            <TooltipContent
+                                                side="top"
+                                                className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2"
+                                            >
+                                                Asignaremos uno o varios vehículos del modelo que escojas según el número de viajeros.
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </div>
+
+                                    <Input
+                                        type="number"
+                                        min="1"
+                                        value={form.viajeros}
+                                        onChange={(e) =>
+                                            setForm({
+                                                ...form,
+                                                viajeros: Math.max(1, Number(e.target.value))
+                                            })
                                         }
-                                        setErrorFecha("");
-                                        setForm({ ...form, fechaLlegada: valor });
-                                    }}
-                                />
-                                {errorFecha && <p className="text-sm text-red-600 mt-1">{errorFecha}</p>}
-                            </Field>
+                                    />
+                                </Field>
 
-                            <Field>
-                                <FieldLabel>Hora de llegada</FieldLabel>
-                                <Input type="time"
-                                    value={form.horaLlegada}
-                                    onChange={(e) => setForm({ ...form, horaLlegada: e.target.value })} />
-                            </Field>
+                                <Field>
+                                    <FieldLabel className="flex items-center h-[24px]">Nombre completo</FieldLabel>
+                                    <Input value={form.nombre}
+                                        onChange={(e) => setForm({ ...form, nombre: e.target.value })}
+                                    />
+                                </Field>
 
-                            <Field>
-                                <FieldLabel>Número de vuelo</FieldLabel>
-                                <Input placeholder="Ej. IB1234"
-                                    value={form.vuelo}
-                                    onChange={(e) => setForm({ ...form, vuelo: e.target.value })} />
-                            </Field>
+                                <Field>
+                                    <FieldLabel>Email</FieldLabel>
+                                    <Input type="email"
+                                        value={form.email}
+                                        onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                                </Field>
 
-                            <Field>
-                                <FieldLabel>Aeropuerto de origen</FieldLabel>
-                                <Input placeholder="Ej. Madrid-Barajas (MAD)"
-                                    value={form.aeropuertoOrigen}
-                                    onChange={(e) => setForm({ ...form, aeropuertoOrigen: e.target.value })} />
-                            </Field>
+                                <Field>
+                                    <FieldLabel>Teléfono</FieldLabel>
+                                    <Input type="tel"
+                                        value={form.telefono}
+                                        onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
+                                </Field>
+                            </FieldGroup>
+                            <div className="w-full flex justify-end mt-8! gap-2">
+                                <Button variant="outline" className="!rounded-lg" onClick={onCancel}>
+                                    Cancelar
+                                </Button>
 
-                            <Field>
-                                <FieldLabel>Hotel de destino</FieldLabel>
-                                <Select
-                                    value={form.hotel}
-                                    onValueChange={(v) => setForm({ ...form, hotel: v })}
+                                <Button
+                                    className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
+                                    onClick={enviarReserva}
                                 >
-                                    <SelectTrigger className="h-11 rounded-lg!">
-                                        <SelectValue placeholder="Selecciona un hotel" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {hoteles.map((hotel) => (
-                                            <SelectItem key={hotel.id_hotel} value={hotel.id_hotel}>
-                                                {hotel.nombre}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </Field>
-
-                            <Field>
-                                <FieldLabel>Vehículo</FieldLabel>
-                                <Select
-                                    value={form.vehiculo}
-                                    onValueChange={(v) => setForm({ ...form, vehiculo: v })}
-                                >
-                                    <SelectTrigger className="h-11 rounded-lg!">
-                                        <SelectValue placeholder="Selecciona un vehículo" />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {vehiculos.map((v) => (
-                                            <SelectItem key={v.id_vehiculo} value={String(v.id_vehiculo)}>
-                                                {v.marca} {v.modelo}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </Field>
-
-                            <Field>
-                                <div className="flex items-center gap-2">
-                                    <FieldLabel className="m-0">Número de viajeros</FieldLabel>
-
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button className="size-6 flex items-center justify-center rounded-full">
-                                                <Info className="size-4" />
-                                            </button>
-                                        </TooltipTrigger>
-
-                                        <TooltipContent
-                                            side="top"
-                                            className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2"
-                                        >
-                                            Asignaremos uno o varios vehículos del modelo que escojas según el número de viajeros.
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </div>
-
-                                <Input
-                                    type="number"
-                                    min="1"
-                                    value={form.viajeros}
-                                    onChange={(e) =>
-                                        setForm({
-                                            ...form,
-                                            viajeros: Math.max(1, Number(e.target.value))
-                                        })
-                                    }
-                                />
-                            </Field>
-
-                            <Field>
-                                <FieldLabel className="flex items-center h-[24px]">Nombre completo</FieldLabel>
-                                <Input value={form.nombre}
-                                    onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                                />
-                            </Field>
-
-                            <Field>
-                                <FieldLabel>Email</FieldLabel>
-                                <Input type="email"
-                                    value={form.email}
-                                    onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                            </Field>
-
-                            <Field>
-                                <FieldLabel>Teléfono</FieldLabel>
-                                <Input type="tel"
-                                    value={form.telefono}
-                                    onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
-                            </Field>
-                        </FieldGroup>
+                                    Confirmar Reserva
+                                </Button>
+                            </div>
+                        </>
                     )}
-                    <div className="w-full flex justify-end mt-8! gap-2">
-                        <Button variant="outline" className="!rounded-lg" onClick={onCancel}>
-                            Cancelar
-                        </Button>
-                        <Button
-                            className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
-                            onClick={enviarReserva}
-                        >
-                            Confirmar Reserva
-                        </Button>
-                    </div>
                 </CardContent>
             </div>
         </Card>
