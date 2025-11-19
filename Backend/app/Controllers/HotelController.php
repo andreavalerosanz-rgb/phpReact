@@ -16,6 +16,21 @@ class HotelController extends Controller {
         $this->json($st->fetchAll());
     }
 
+    public function show($id) {
+    $sql = "SELECT * FROM transfer_hoteles WHERE id_hotel = ?";
+    $st = DB::pdo()->prepare($sql);
+    $st->execute([(int)$id]);
+
+    $hotel = $st->fetch();
+
+    if (!$hotel) {
+        return $this->json(['error' => 'Hotel no encontrado'], 404);
+    }
+
+    return $this->json($hotel);
+}
+
+
     public function index() {
     $st = DB::pdo()->query("SELECT * FROM transfer_hoteles ORDER BY id_hotel ASC");
     $this->json($st->fetchAll());

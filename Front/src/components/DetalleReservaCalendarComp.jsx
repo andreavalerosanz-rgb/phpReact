@@ -6,63 +6,44 @@ import { useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 
 const tipoLabels = {
-  "aeropuerto-hotel": "Aeropuerto 🡪 Hotel",
-  "hotel-aeropuerto": "Hotel 🡪 Aeropuerto",
-  "ida-vuelta": "Ida y Vuelta",
+  1: "Aeropuerto 🡪 Hotel",
+  2: "Hotel 🡪 Aeropuerto",
+  3: "Ida y Vuelta",
 }
 
 const tipoColor = {
-  "aeropuerto-hotel": "bg-green-500",
-  "hotel-aeropuerto": "bg-blue-500",
-  "ida-vuelta": "bg-orange-500",
+  1: "bg-green-500",
+  2: "bg-blue-500",
+  3: "bg-orange-500",
 }
 
-/* ---------------------------------------------
-   Obtener la fecha/hora principal según el tipo
---------------------------------------------- */
-function getFechaPrincipal(reserva) {
-  // si llega fecha y hora correctas, OK
-  if (reserva.fechaLlegada && reserva.horaLlegada) {
-    return `${reserva.fechaLlegada}T${reserva.horaLlegada}`
-  }
-
-  if (reserva.fechaVuelta && reserva.horaVueloSalida) {
-    return `${reserva.fechaVuelta}T${reserva.horaVueloSalida}`
-  }
-
-  // fallback si viene solo fecha sin hora
-  if (reserva.fecha) {
-    return reserva.fecha.includes("T")
-      ? reserva.fecha
-      : `${reserva.fecha}T00:00:00`
-  }
-
-  // última protección: fecha válida por defecto
-  return new Date().toISOString()
-}
-
-
-/* ---------------------------------------------
-   Componente principal
---------------------------------------------- */
 export default function DetalleReservaCalendarComp({ id }) {
   const navigate = useNavigate()
+  const formatFecha = (fecha) => {
+    if (!fecha) return "";
+    return format(new Date(fecha), "dd/MM/yyyy", { locale: es });
+  };
 
+  const formatHora = (hora) => {
+    if (!hora) return "";
+    return hora.slice(0, 5); // "HH:MM"
+  };
   const [reserva, setReserva] = useState(null)
+  const [hotel, setHotel] = useState(null)
+  const [destino, setDestino] = useState(null)
+  const [vehiculo, setVehiculo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const cargarReserva = async () => {
+    const loadReserva = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/api/reservas/${id}`)
+        //CARGAR RESERVA
+        const r = await fetch(`http://localhost:8080/api/reservas/${id}`)
+        if (!r.ok) throw new Error("No se pudo cargar la reserva")
+        const d = await r.json()
 
-        if (!response.ok) {
-          throw new Error("No se pudo cargar la reserva")
-        }
-
-        const data = await response.json()
-        setReserva(data)
+        setReserva(d)
 
       } catch (err) {
         setError(err.message)
@@ -71,123 +52,104 @@ export default function DetalleReservaCalendarComp({ id }) {
       }
     }
 
-    cargarReserva()
+    loadReserva()
   }, [id])
 
-  if (loading) {
-    return <div className="text-center py-10">Cargando reserva...</div>
-  }
+  if (loading) return <div className="text-center py-10">Cargando reserva...</div>
 
-  if (error) {
+  if (error)
     return (
       <div className="text-center py-10">
         <h2 className="text-xl font-semibold mb-4">Error al cargar la reserva</h2>
         <Button onClick={() => navigate("/calendario")}>Volver al calendario</Button>
       </div>
     )
-  }
 
-  if (!reserva) {
+  if (!reserva)
     return (
       <div className="text-center py-10">
         <h2 className="text-xl font-semibold mb-4">Reserva no encontrada</h2>
         <Button onClick={() => navigate("/calendario")}>Volver al calendario</Button>
       </div>
     )
-  }
 
+  const tipo = reserva.id_tipo_reserva
+  const esIdaVuelta = tipo === 3
 
-  const fechaPrincipal = getFechaPrincipal(reserva)
+  const fechaIda = reserva.fecha_entrada
+  const horaIda = reserva.hora_entrada
+  const fechaVuelta = reserva.fecha_vuelo_salida
+  const horaVuelta = reserva.hora_vuelo_salida
 
   return (
     <Card className="shadow-md rounded-xl">
       <CardHeader className="text-center space-y-2">
-        <CardTitle className="text-2xl mt-2">
-          Reserva #{reserva.id}
-        </CardTitle>
+        <CardTitle className="text-2xl mt-2">Reserva #{reserva.id_reserva}</CardTitle>
 
         <span
-          className={`px-2 py-0.5 text-white rounded-md text-m font-medium ${tipoColor[reserva.tipo]}`}
+          className={`px-2 py-0.5 text-white rounded-md text-m font-medium ${tipoColor[tipo]}`}
         >
-          {tipoLabels[reserva.tipo] || reserva.tipo}
+          {tipoLabels[tipo]}
         </span>
       </CardHeader>
 
       <CardContent className="space-y-6 text-[var(--dark-slate-gray)]">
 
-        {/* ---------------------- */}
-        {/* Información del traslado */}
-        {/* ---------------------- */}
-        <div className="p-4 border rounded-lg bg-white space-y-1">
-          <h3 className="font-semibold mb-1">Información del traslado</h3>
+        {/* IDA-VUELTA = TRES COLUMNAS */}
+        {esIdaVuelta ? (
+          <div className="grid grid-cols-3 gap-4">
 
-          <p>
-            <strong>Fecha:</strong>{" "}
-            {fechaPrincipal && !isNaN(new Date(fechaPrincipal))
-              ? format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })
-              : "Fecha no disponible"}
+            {/* IDA */}
+            <div className="p-4 border rounded-lg bg-white space-y-1">
+              <h3 className="font-semibold">Ida</h3>
+              <p><strong>Fecha:</strong> {formatFecha(fechaIda)}</p>
+              <p><strong>Hora:</strong> {formatHora(horaIda)}</p>
+              <p><strong>Origen:</strong> {reserva.origen_vuelo_entrada}</p>
+              <p><strong>Hotel:</strong> {reserva.hotel_nombre}</p>
+              <p><strong>Vehículo:</strong> {reserva.vehiculo_descripcion}</p>
+            </div>
 
-          </p>
+            {/* VUELTA */}
+            <div className="p-4 border rounded-lg bg-white space-y-1">
+              <h3 className="font-semibold">Vuelta</h3>
+              <p><strong>Fecha:</strong> {formatFecha(fechaIda)}</p>
+              <p><strong>Hora:</strong> {formatHora(horaIda)}</p>
+              <p><strong>Origen:</strong> {destino?.nombre || reserva.id_destino}</p>
+              <p><strong>Hotel:</strong> {reserva.hotel_nombre}</p>
+              <p><strong>Vehículo:</strong> {reserva.vehiculo_descripcion}</p>
+            </div>
 
-          <p>
-            <strong>Hora:</strong>{" "}
-            {fechaPrincipal && !isNaN(new Date(fechaPrincipal))
-              ? format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })
-              : "Fecha no disponible"}
+            {/* PASAJEROS */}
+            <div className="p-4 border rounded-lg bg-white space-y-1">
+              <h3 className="font-semibold">Pasajeros</h3>
+              <p><strong>Email:</strong> {reserva.email_cliente}</p>
+              <p><strong>Viajeros:</strong> {reserva.num_viajeros}</p>
+            </div>
 
-          </p>
-
-          <p><strong>Origen:</strong> {reserva.origen}</p>
-          <p><strong>Destino:</strong> {reserva.destino}</p>
-          <p><strong>Descripción:</strong> {reserva.servicio}</p>
-        </div>
-
-        {/* ---------------------- */}
-        {/* Datos del pasajero */}
-        {/* ---------------------- */}
-        <div className="p-4 border rounded-lg bg-white space-y-1">
-          <h3 className="font-semibold mb-1">Datos del pasajero</h3>
-
-          <p><strong>Nombre:</strong> {reserva.pasajeros.nombre}</p>
-          <p><strong>Email:</strong> {reserva.pasajeros.email}</p>
-          <p><strong>Teléfono:</strong> {reserva.pasajeros.telefono}</p>
-          <p><strong>Viajeros:</strong> {reserva.pasajeros.viajeros}</p>
-
-          {reserva.pasajeros.vehiculo && (
-            <p><strong>Vehículo:</strong> {reserva.pasajeros.vehiculo}</p>
-          )}
-        </div>
-
-        {/* ---------------------- */}
-        {/* Información de la vuelta */}
-        {/* ---------------------- */}
-        {reserva.vuelta && (
-          <div className="p-4 border rounded-lg bg-white space-y-1">
-            <h3 className="font-semibold mb-1">Datos de la vuelta</h3>
-
-            <p>
-              <strong>Fecha:</strong>{" "}
-              {fechaPrincipal && !isNaN(new Date(fechaPrincipal))
-                ? format(new Date(fechaPrincipal), "d 'de' MMMM yyyy", { locale: es })
-                : "Fecha no disponible"}
-
-            </p>
-
-            <p><strong>Origen:</strong> {reserva.vuelta.origen}</p>
-            <p><strong>Destino:</strong> {reserva.vuelta.destino}</p>
           </div>
+        ) : (
+          <>
+            {/* SOLO IDA */}
+            <div className="p-4 border rounded-lg bg-white space-y-1">
+              <h3 className="font-semibold mb-4">Información del traslado</h3>
+              <p><strong>Fecha:</strong> {formatFecha(fechaIda)}</p>
+              <p><strong>Hora:</strong> {formatHora(horaIda)}</p>
+              <p><strong>Origen:</strong> {reserva.origen_vuelo_entrada}</p>
+              <p><strong>Hotel:</strong> {reserva.hotel_nombre}</p>
+              <p><strong>Vehículo:</strong> {reserva.vehiculo_descripcion}</p>
+            </div>
+
+            {/* PASAJEROS */}
+            <div className="p-4 border rounded-lg bg-white space-y-1">
+              <h3 className="font-semibold mb-4">Datos del pasajero</h3>
+              <p><strong>Email:</strong> {reserva.email_cliente}</p>
+              <p><strong>Viajeros:</strong> {reserva.num_viajeros}</p>
+            </div>
+          </>
         )}
 
-        {/* ---------------------- */}
-        {/* Botón volver */}
-        {/* ---------------------- */}
         <div className="pt-2 flex justify-center mb-2">
-          <Button
-            className="rounded-lg! bg-[var(--dark-slate-gray)] hover:bg-[var(--ebony)] text-[var(--ivory)]"
-            onClick={() => navigate("/calendario")}
-          >
-            Volver al calendario
-          </Button>
+          <Button className="rounded-lg!" onClick={() => navigate("/calendario")}>Volver al calendario</Button>
         </div>
 
       </CardContent>

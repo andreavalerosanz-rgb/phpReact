@@ -13,12 +13,57 @@ class ReservationController extends Controller {
     $this->json($st->fetchAll());
   }
 
-  public function show($id){
-    $st = DB::pdo()->prepare("SELECT * FROM transfer_reservas WHERE id_reserva=?");
-    $st->execute([(int)$id]);
-    $r = $st->fetch();
-    $r ? $this->json($r) : $this->json(['error'=>'Not found'],404);
-  }
+ public function show($id) {
+    try {
+        $db = DB::pdo();
+
+        // ============================
+        // 1️⃣ OBTENER LA RESERVA BASE
+        // ============================
+        $st = $db->prepare("SELECT * FROM transfer_reservas WHERE id_reserva = ?");
+        $st->execute([(int)$id]);
+        $reserva = $st->fetch();
+
+        if (!$reserva) {
+            return $this->json(['error' => 'Reserva no encontrada'], 404);
+        }
+
+        // ============================
+        // 2️⃣ OBTENER HOTEL (nombre)
+        // ============================
+        $st = $db->prepare("SELECT nombre FROM transfer_hoteles WHERE id_hotel = ?");
+        $st->execute([$reserva['id_hotel']]);
+        $hotelNombre = $st->fetchColumn() ?: null;
+
+        // ============================
+        // 3️⃣ OBTENER VEHÍCULO (Descripción)
+        // ============================
+        $st = $db->prepare("SELECT `Descripción` FROM transfer_vehiculos WHERE id_vehiculo = ?");
+        $st->execute([$reserva['id_vehiculo']]);
+        $vehiculoDescripcion = $st->fetchColumn() ?: null;
+
+        // ============================
+        // 4️⃣ AÑADIR CAMPOS AL JSON
+        // ============================
+        $reserva['hotel_nombre'] = $hotelNombre;
+        $reserva['vehiculo_descripcion'] = $vehiculoDescripcion;
+
+        // (zona NO se añade porque NO debe mostrarse)
+
+        return $this->json($reserva);
+
+    } catch (\Throwable $e) {
+        http_response_code(500);
+        return $this->json([
+            "php_error" => $e->getMessage(),
+            "line" => $e->getLine(),
+            "file" => $e->getFile()
+        ]);
+    }
+}
+
+
+
 
   /** Comprueba existencia FK genérica */
   private function fkExists(string $table, string $pk, int $id): bool {
