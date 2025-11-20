@@ -56,10 +56,18 @@ export function AppSidebar({
         <SidebarHeader>
           <SidebarMenu className="p-1">
             <SidebarMenuItem>
-              <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-0">
-                <Link to="/">
-                  <IconInnerShadowTop className="!size-5" />
-                  <span className="text-base font-semibold">{companyName}</span>
+              <SidebarMenuButton
+                asChild
+                className="data-[slot=sidebar-menu-button]:!p-0"
+              >
+                <Link
+                  to="/"
+                  className="flex items-center gap-2 no-underline! hover:no-underline"
+                >
+                  <IconInnerShadowTop className="!size-5 text-[var(--dark-slate-gray)]" />
+                  <span className="text-base font-semibold text-[var(--dark-slate-gray)]">
+                    {companyName}
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
