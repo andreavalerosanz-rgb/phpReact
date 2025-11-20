@@ -24,20 +24,15 @@ export function AppSidebar({
   companyName = "Isla Transfers",
   ...props
 }) {
-  const [open, setOpen] = useState(false) // Para mobile toggle
+  const [localUser, setLocalUser] = useState(user)
 
   React.useEffect(() => {
-    const setUserFromStorage = () => {
-      const storedUser = JSON.parse(localStorage.getItem("userData"))
-      if (storedUser) {
-        user = {
-          ...storedUser,
-        }
-      }
+    const storedUser = JSON.parse(localStorage.getItem("userData"))
+    if (storedUser) {
+      setLocalUser(storedUser)
     }
-
-    setUserFromStorage()
   }, [])
+
 
 
   return (
@@ -78,8 +73,9 @@ export function AppSidebar({
         </SidebarContent>
 
         <SidebarFooter>
-          {user && <NavUser user={user} />}
+          {localUser && <NavUser user={localUser} />}
         </SidebarFooter>
+
       </Sidebar>
     </>
   )

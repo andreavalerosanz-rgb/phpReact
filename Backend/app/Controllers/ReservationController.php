@@ -318,6 +318,17 @@ else {
             return $this->json(['error' => 'VALIDATION_ERROR', 'details' => $errors], 400);
         }
 
+        // Regla de seguridad: usuario normal SOLO para sí mismo
+if ($_SESSION['logged_user_type'] === "user") {
+    if ($idOwner !== $_SESSION['logged_user_id']) {
+        return $this->json([
+            "error" => "USER_CANNOT_ASSIGN_OTHERS"
+        ], 403);
+    }
+}
+
+        
+
         // --------------------------
 // 7.1 Restricción especial para tipo_owner=hotel
 // --------------------------

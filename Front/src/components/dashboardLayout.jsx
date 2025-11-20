@@ -58,7 +58,11 @@ export const DashboardLayout = ({ children, currentUser }) => {
 
         <SidebarInset className="flex-1 flex flex-col min-h-screen px-0">
           <header className="h-24 w-full bg-(--sidebar) shadow-md flex items-center justify-center" >
-            <h1>Dashboard</h1>
+            <img
+              src="/logo-img.png"
+              alt="Dashboard logo"
+              className="h-20 object-contain"
+            />
           </header>
           <main className="flex-1 overflow-y-auto p-8">{children}</main>
         </SidebarInset>
