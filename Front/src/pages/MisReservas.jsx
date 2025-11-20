@@ -70,7 +70,22 @@ const MisReservas = () => {
                       servicio = "Trayecto desconocido"
                   }
 
-                  const fechaCompleta = `${r.fecha_entrada}T${r.hora_entrada}`
+                  // Fecha completa según tipo de reserva
+                  let fechaCompleta = null;
+
+                  if (r.id_tipo_reserva === 1 || r.id_tipo_reserva === 3) {
+                    // IDA o IDA_VUELTA → usar fecha y hora de ENTRADA
+                    if (r.fecha_entrada && r.hora_entrada) {
+                      fechaCompleta = `${r.fecha_entrada}T${r.hora_entrada}`;
+                    }
+                  }
+                  else if (r.id_tipo_reserva === 2) {
+                    // VUELTA → usar fecha y hora de VUELO DE SALIDA
+                    if (r.fecha_vuelo_salida && r.hora_vuelo_salida) {
+                      fechaCompleta = `${r.fecha_vuelo_salida}T${r.hora_vuelo_salida}`;
+                    }
+                  }
+
 
                   return {
                     id: r.id_reserva,

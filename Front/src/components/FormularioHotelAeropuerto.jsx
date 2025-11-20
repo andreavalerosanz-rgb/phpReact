@@ -87,6 +87,8 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                 hora_vuelo_salida: form.horaVuelo,
                 numero_vuelo_salida: form.vuelo,
                 origen_vuelo_salida: form.aeropuertoDestino,
+                hora_recogida_hotel: form.horaRecogida,
+
 
                 tipo_owner: user.type,   // ← ESTE es el campo correcto
                 id_owner: user.id

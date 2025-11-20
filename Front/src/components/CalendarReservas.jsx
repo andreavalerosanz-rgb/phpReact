@@ -75,12 +75,12 @@ const parseFechaLocal = (str) => {
 // adaptar reserva
 const parseReserva = (ev) => ({
   id: ev.id,
-  fecha: new Date(ev.start),
+  fecha: ev.fecha_completa ? new Date(ev.fecha_completa) : null,
   servicio: ev.localizador,
   tipo:
-    ev.color === "#4caf50"
+    ev.id_tipo_reserva === 1
       ? "aeropuerto-hotel"
-      : ev.color === "#1976d2"
+      : ev.id_tipo_reserva === 2
         ? "hotel-aeropuerto"
         : "ida-vuelta",
 })

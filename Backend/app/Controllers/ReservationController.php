@@ -8,10 +8,59 @@ use App\Helpers\Helpers; // trait para generarLocalizador()
 class ReservationController extends Controller {
   use Helpers;
 
-  public function index(){
-    $st = DB::pdo()->query("SELECT * FROM transfer_reservas ORDER BY id_reserva DESC LIMIT 50");
-    $this->json($st->fetchAll());
-  }
+ public function index(){
+    try {
+        $db = DB::pdo();
+
+        $st = $db->query("SELECT * FROM transfer_reservas ORDER BY id_reserva DESC LIMIT 50");
+        $reservas = $st->fetchAll();
+
+        foreach ($reservas as &$r) {
+
+    // ============================
+    // FECHA PRINCIPAL PARA DASHBOARD
+    // ============================
+
+    // 1️⃣ Fecha de ida
+if (!empty($r['fecha_entrada']) && !empty($r['hora_entrada'])) {
+    $r['fecha_evento'] = $r['fecha_entrada'] . "T" . $r['hora_entrada'];
+}
+// 2️⃣ Fecha de vuelta (solo si no existe la de ida)
+else if (!empty($r['fecha_vuelo_salida']) && !empty($r['hora_vuelo_salida'])) {
+    $r['fecha_evento'] = $r['fecha_vuelo_salida'] . "T" . $r['hora_vuelo_salida'];
+}
+// 3️⃣ Ninguna
+else {
+    $r['fecha_evento'] = null;
+}
+
+// 4️⃣ Compatibilidad: el frontend usa fecha_completa
+$r['fecha_completa'] = $r['fecha_evento'];
+
+
+    // HOTEL
+    $stH = $db->prepare("SELECT nombre FROM transfer_hoteles WHERE id_hotel=?");
+    $stH->execute([$r['id_hotel']]);
+    $r['hotel_nombre'] = $stH->fetchColumn() ?: null;
+
+    // VEHÍCULO
+    $stV = $db->prepare("SELECT `Descripción` FROM transfer_vehiculos WHERE id_vehiculo=?");
+    $stV->execute([$r['id_vehiculo']]);
+    $r['vehiculo_descripcion'] = $stV->fetchColumn() ?: null;
+}
+
+
+        return $this->json($reservas);
+
+    } catch (\Throwable $e) {
+        return $this->json([
+            "php_error" => $e->getMessage(),
+            "line" => $e->getLine(),
+            "file" => $e->getFile()
+        ], 500);
+    }
+}
+
 
  public function show($id) {
     try {
@@ -43,12 +92,23 @@ class ReservationController extends Controller {
         $vehiculoDescripcion = $st->fetchColumn() ?: null;
 
         // ============================
-        // 4️⃣ AÑADIR CAMPOS AL JSON
+        // 4️⃣ FECHA COMPLETA (para frontend)
+        // ============================
+        if (!empty($reserva['fecha_entrada']) && !empty($reserva['hora_entrada'])) {
+            $reserva['fecha_completa'] = $reserva['fecha_entrada'] . "T" . $reserva['hora_entrada'];
+        } 
+        else if (!empty($reserva['fecha_vuelo_salida']) && !empty($reserva['hora_vuelo_salida'])) {
+            $reserva['fecha_completa'] = $reserva['fecha_vuelo_salida'] . "T" . $reserva['hora_vuelo_salida'];
+        } 
+        else {
+            $reserva['fecha_completa'] = null;
+        }
+
+        // ============================
+        // 5️⃣ AÑADIR DATOS EXTRA
         // ============================
         $reserva['hotel_nombre'] = $hotelNombre;
         $reserva['vehiculo_descripcion'] = $vehiculoDescripcion;
-
-        // (zona NO se añade porque NO debe mostrarse)
 
         return $this->json($reserva);
 
@@ -61,6 +121,7 @@ class ReservationController extends Controller {
         ]);
     }
 }
+
 
 
 
@@ -119,21 +180,25 @@ public function store() {
         $fechaSalida    = $in['fecha_vuelo_salida']    ?? null;
         $horaVueloSalida = $in['hora_vuelo_salida']    ?? null;
 
-        if ($tipoTxt === 'VUELTA') {
-            // VUELTA simple: se guarda como "entrada"
-            $fechaEntrada  = $fechaSalida;
-            $horaEntrada   = $horaVueloSalida;
-            $vueloEntrada  = $in['numero_vuelo_salida'] ?? null;
-            $origenEntrada = $in['origen_vuelo_salida'] ?? null;
-        }
+        // Para IDA no se toca nada (ya está correcto)
 
-        if ($tipoTxt === 'IDA_VUELTA') {
-            // La VUELTA usa hora de recogida en hotel
-            $fechaEntrada  = $fechaSalida;
-            $horaEntrada   = $in['hora_recogida_hotel'] ?? null;
-            $vueloEntrada  = $in['numero_vuelo_salida'] ?? null;
-            $origenEntrada = $in['origen_vuelo_salida'] ?? null;
-        }
+// Para VUELTA
+if ($tipoTxt === 'VUELTA') {
+    // La IDA NO EXISTE → se dejan null
+    $fechaEntrada  = null;
+    $horaEntrada   = null;
+    $vueloEntrada  = null;
+    $origenEntrada = null;
+}
+
+// Para IDA_VUELTA
+if ($tipoTxt === 'IDA_VUELTA') {
+    // Mantener datos de IDA tal como vienen
+
+    // Datos de VUELTA vienen por separado y NO deben pisar los de IDA
+    // Aquí no se toca nada
+}
+
 
         // --------------------------
         // 6. VALIDACIONES
@@ -259,48 +324,63 @@ switch ($tipoOwner) {
         // --------------------------
         $localizador = $this->generarLocalizador();
 
-        $sql = "INSERT INTO transfer_reservas (
-            localizador,
-            id_hotel,
-            id_tipo_reserva,
-            email_cliente,
-            fecha_reserva,
-            fecha_modificacion,
-            id_destino,
-            fecha_entrada,
-            hora_entrada,
-            numero_vuelo_entrada,
-            origen_vuelo_entrada,
-            hora_vuelo_salida,
-            fecha_vuelo_salida,
-            num_viajeros,
-            tipo_owner,
-            id_owner,
-            id_vehiculo
-        ) VALUES (
-            ?, ?, ?, ?, NOW(), NOW(),
-            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-        )";
+       $sql = "INSERT INTO transfer_reservas (
+    localizador,
+    id_hotel,
+    id_tipo_reserva,
+    email_cliente,
+    fecha_reserva,
+    fecha_modificacion,
+    id_destino,
 
-        $params = [
-    $localizador,          // 1 localizador
-    (int)$idHotel,         // 2 id_hotel
-    (int)$idTipo,          // 3 id_tipo_reserva
-    $emailCliente,         // 4 email_cliente
-    // 5 NOW() → fecha_reserva
-    // 6 NOW() → fecha_modificacion
-    (int)$idDestino,       // 7 id_destino
-    $fechaEntrada,         // 8 fecha_entrada
-    $horaEntrada,          // 9 hora_entrada
-    $vueloEntrada,         // 10 numero_vuelo_entrada
-    $origenEntrada,        // 11 origen_vuelo_entrada
-    $horaVueloSalida,      // 12 hora_vuelo_salida
-    $fechaSalida,          // 13 fecha_vuelo_salida
-    (int)$pax,             // 14 num_viajeros
-    $tipoOwner,            // 15 tipo_owner
-    (int)$idOwner,         // 16 id_owner
-    (int)$idVehiculo       // 17 id_vehiculo
+    fecha_entrada,
+    hora_entrada,
+    numero_vuelo_entrada,
+    origen_vuelo_entrada,
+
+    fecha_vuelo_salida,
+    hora_vuelo_salida,
+    numero_vuelo_salida,
+    origen_vuelo_salida,
+    hora_recogida_hotel,
+
+    num_viajeros,
+    tipo_owner,
+    id_owner,
+    id_vehiculo
+)
+ VALUES (
+    ?, ?, ?, ?, NOW(), NOW(),
+    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+)";
+
+
+       $params = [
+    $localizador,
+    $idHotel,
+    $idTipo,
+    $emailCliente,
+
+    $idDestino,
+
+    $fechaEntrada,
+    $horaEntrada,
+    $vueloEntrada,
+    $origenEntrada,
+
+    $fechaSalida,
+    $horaVueloSalida,
+    $in['numero_vuelo_salida'] ?? null,
+    $in['origen_vuelo_salida'] ?? null,
+    $in['hora_recogida_hotel'] ?? null,
+
+    $pax,
+    $tipoOwner,
+    $idOwner,
+    $idVehiculo
 ];
+
+
 
 
         $st = DB::pdo()->prepare($sql);
@@ -435,7 +515,10 @@ public function update($id) {
             'fecha_entrada','hora_entrada','numero_vuelo_entrada','origen_vuelo_entrada',
             'fecha_vuelo_salida','hora_vuelo_salida','numero_vuelo_salida','origen_vuelo_salida',
             'hora_recogida_hotel','id_vehiculo','num_viajeros',
-            'id_hotel','id_destino','email_cliente','telefono_cliente','nombre_cliente'
+            'id_hotel','id_destino','email_cliente','telefono_cliente','nombre_cliente', 'numero_vuelo_salida',
+'origen_vuelo_salida',
+'hora_recogida_hotel',
+
         ];
 
         $set = [];
