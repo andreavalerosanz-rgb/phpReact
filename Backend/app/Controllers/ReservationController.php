@@ -61,6 +61,22 @@ $r['fecha_completa'] = $r['fecha_evento'];
     }
 }
 
+public function adminReservas()
+{
+    $sql = "SELECT * FROM transfer_reservas ORDER BY fecha_entrada DESC";
+    $st = DB::pdo()->query($sql);
+    $reservas = $st->fetchAll();
+
+    return $this->json($reservas);
+}
+
+public function all()
+{
+    $sql = "SELECT * FROM transfer_reservas ORDER BY id_reserva DESC";
+    $st = DB::pdo()->query($sql);
+    $this->json($st->fetchAll());
+}
+
 
  public function show($id) {
     try {
@@ -415,7 +431,7 @@ public function update($id) {
 
         $in   = $this->body();
         $id   = (int)$id;
-        $role = strtolower($in['role'] ?? 'user');
+        $role = strtolower($in['role'] ?? ($_SERVER['HTTP_ROLE'] ?? 'user'));
 
         // ------------------------------------------
         // 1. Cargar la reserva original
@@ -570,7 +586,7 @@ public function update($id) {
 
 public function destroy($id){
     $in   = $this->body(); // rol llega en body
-    $role = strtolower($in['role'] ?? 'user');
+    $role = strtolower($in['role'] ?? ($_SERVER['HTTP_ROLE'] ?? 'user'));
 
     // Comprobar que la reserva existe
     $st0 = DB::pdo()->prepare("SELECT fecha_entrada, hora_entrada, fecha_vuelo_salida, hora_vuelo_salida FROM transfer_reservas WHERE id_reserva=?");

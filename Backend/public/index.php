@@ -60,6 +60,8 @@ $router->post('/api/register-hotel', 'AuthController@registerHotel'); // registr
 $router->get('/api/admin/dashboard', 'AdminController@dashboard'); // datos para el dashboard
 $router->get('/api/admin/users', 'AdminController@listUsers');              // listar todos los usuarios
 $router->get('/api/admin/users/{id}', 'AdminController@getUserById');      // obtener usuario por ID
+$router->get('/api/admin/reservas', 'ReservationController@adminReservas');
+$router->get('/api/reservas-all', 'ReservationController@all');
 
 // ----------------- HOTEL ------------------
 $router->get('/api/reservas', 'ReservationController@index'); // listar reservas

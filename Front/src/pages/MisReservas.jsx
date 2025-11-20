@@ -7,11 +7,25 @@ import "react-toastify/dist/ReactToastify.css"
 
 
 const MisReservas = () => {
-  const [hoteles, setHoteles] = useState([])
-  const [destinos, setDestinos] = useState([])
-  const [vehiculos, setVehiculos] = useState([])
-  const [reservas, setReservas] = useState([])
+
   const navigate = useNavigate()
+  const [reservas, setReservas] = useState([])
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5;
+  const indexStart = (currentPage - 1) * pageSize;
+  const indexEnd = indexStart + pageSize;
+  const reservasPaginadas = reservas.slice(indexStart, indexEnd);
+  const totalPages = Math.ceil(reservas.length / pageSize);
+  const handlePrev = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+
   const [currentUser] = useState(
     localStorage.getItem("userData")
       ? JSON.parse(localStorage.getItem("userData"))
@@ -19,90 +33,101 @@ const MisReservas = () => {
   )
 
   useEffect(() => {
-    if (!currentUser?.id) {
-      console.error("El usuario no tiene ID")
-      return
+    if (!currentUser?.id || !currentUser?.type) {
+      console.error("Usuario sin ID o sin tipo");
+      return;
     }
 
-    // 1. Cargar hoteles
-    fetch("http://localhost:8080/api/hoteles")
-      .then(res => res.json())
-      .then(hotelesData => {
+    const fetchReservas = async () => {
+      try {
+        let url = "";
 
-        // 2. Cargar vehículos
-        fetch("http://localhost:8080/api/vehiculos")
-          .then(res => res.json())
-          .then(vehiculosData => {
+        // ================================
+        // ADMIN → TODAS las reservas
+        // ================================
+        if (currentUser.type === "admin") {
+          url = "http://localhost:8080/api/reservas";
+        }
 
-            // 3. Cargar reservas del usuario
-            fetch(`http://localhost:8080/api/user/${currentUser.id}/reservas`)
-              .then(res => res.json())
-              .then(reservasData => {
+        // ====================================
+        // HOTEL → reservas asociadas a su hotel
+        // ====================================
+        else if (currentUser.type === "hotel") {
+          url = `http://localhost:8080/api/hotel/${currentUser.id}/reservas`;
+        }
 
-                const mapped = reservasData.map(r => {
-                  const hotel = hotelesData.find(h => h.id_hotel === r.id_hotel)
-                  const vehiculo = vehiculosData.find(v => v.id_vehiculo === r.id_vehiculo)
+        // =====================
+        // USUARIO NORMAL → OK
+        // =====================
+        else {
+          url = `http://localhost:8080/api/user/${currentUser.id}/reservas`;
+        }
 
-                  const nombreHotel = hotel?.nombre || "Hotel desconocido"
-                  const nombreVehiculo = vehiculo?.["Descripción"] || "Vehículo desconocido"
+        // --- cargar hoteles y vehículos en paralelo ---
+        const [hotelesData, vehiculosData, reservasData] = await Promise.all([
+          fetch("http://localhost:8080/api/hoteles").then(r => r.json()),
+          fetch("http://localhost:8080/api/vehiculos").then(r => r.json()),
+          fetch(url).then(r => r.json())
+        ]);
 
-                  const aeropuertoIda = r.origen_vuelo_entrada
-                  const aeropuertoVuelta = r.origen_vuelo_salida || r.origen_vuelo_entrada
+        // --- Mapear reservas como antes ---
+        const mapped = reservasData.map(r => {
+          const hotel = hotelesData.find(h => h.id_hotel === r.id_hotel);
+          const vehiculo = vehiculosData.find(v => v.id_vehiculo === r.id_vehiculo);
 
-                  let servicio = ""
+          const nombreHotel = hotel?.nombre || "Hotel desconocido";
+          const nombreVehiculo = vehiculo?.Descripción || "Vehículo desconocido";
 
-                  switch (r.id_tipo_reserva) {
-                    case 1: // IDA
-                      servicio = `IDA: Aeropuerto ${aeropuertoIda} → ${nombreHotel}`
-                      break
+          const aeropuertoIda = r.origen_vuelo_entrada;
+          const aeropuertoVuelta = r.origen_vuelo_salida || r.origen_vuelo_entrada;
 
-                    case 2: // VUELTA
-                      servicio = `VUELTA: ${nombreHotel} → Aeropuerto ${aeropuertoVuelta}`
-                      break
+          let servicio = "";
+          switch (r.id_tipo_reserva) {
+            case 1:
+              servicio = `IDA: Aeropuerto ${aeropuertoIda} → ${nombreHotel}`;
+              break;
+            case 2:
+              servicio = `VUELTA: ${nombreHotel} → Aeropuerto ${aeropuertoVuelta}`;
+              break;
+            case 3:
+              servicio =
+                `IDA: Aeropuerto ${aeropuertoIda} → ${nombreHotel}\n` +
+                `VUELTA: ${nombreHotel} → Aeropuerto ${aeropuertoVuelta}`;
+              break;
+          }
 
-                    case 3: // IDA_VUELTA
-                      servicio =
-                        `IDA: Aeropuerto ${aeropuertoIda} → ${nombreHotel}\n` +
-                        `VUELTA: ${nombreHotel} → Aeropuerto ${aeropuertoVuelta}`
-                      break
+          let fechaCompleta = null;
+          if ([1, 3].includes(r.id_tipo_reserva)) {
+            if (r.fecha_entrada && r.hora_entrada) {
+              fechaCompleta = `${r.fecha_entrada}T${r.hora_entrada}`;
+            }
+          } else if (r.id_tipo_reserva === 2) {
+            if (r.fecha_vuelo_salida && r.hora_vuelo_salida) {
+              fechaCompleta = `${r.fecha_vuelo_salida}T${r.hora_vuelo_salida}`;
+            }
+          }
 
-                    default:
-                      servicio = "Trayecto desconocido"
-                  }
+          return {
+            id: r.id_reserva,
+            localizador: r.localizador,
+            servicio,
+            vehiculo: nombreVehiculo,
+            fecha: fechaCompleta,
+            estado: "Confirmada",
+            raw: r
+          };
+        });
 
-                  // Fecha completa según tipo de reserva
-                  let fechaCompleta = null;
+        setReservas(mapped);
 
-                  if (r.id_tipo_reserva === 1 || r.id_tipo_reserva === 3) {
-                    // IDA o IDA_VUELTA → usar fecha y hora de ENTRADA
-                    if (r.fecha_entrada && r.hora_entrada) {
-                      fechaCompleta = `${r.fecha_entrada}T${r.hora_entrada}`;
-                    }
-                  }
-                  else if (r.id_tipo_reserva === 2) {
-                    // VUELTA → usar fecha y hora de VUELO DE SALIDA
-                    if (r.fecha_vuelo_salida && r.hora_vuelo_salida) {
-                      fechaCompleta = `${r.fecha_vuelo_salida}T${r.hora_vuelo_salida}`;
-                    }
-                  }
+      } catch (error) {
+        console.error("Error cargando reservas:", error);
+      }
+    };
 
+    fetchReservas();
+  }, [currentUser]);
 
-                  return {
-                    id: r.id_reserva,
-                    localizador: r.localizador,
-                    servicio,
-                    vehiculo: nombreVehiculo,
-                    fecha: fechaCompleta,
-                    estado: "Confirmada",
-                    raw: r
-                  }
-                })
-
-                setReservas(mapped)
-              })
-          })
-      })
-  }, [])
 
   const handleEdit = (reserva) => {
     toast.info(`Abriendo reserva #${reserva.id} (${reserva.servicio})...`, {
@@ -127,7 +152,7 @@ const MisReservas = () => {
       const response = await fetch(`http://localhost:8080/api/reservas/${reserva.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: currentUser.type || "user" })
+        body: JSON.stringify({ role: currentUser.role || currentUser.type || "user" })
       });
 
       const data = await response.json();
@@ -161,7 +186,7 @@ const MisReservas = () => {
             </tr>
           </thead>
           <tbody>
-            {reservas.map((r) => (
+            {reservasPaginadas.map((r) => (
               <ReservaItem
                 key={r.id}
                 reserva={r}
@@ -172,7 +197,27 @@ const MisReservas = () => {
           </tbody>
         </table>
       </div>
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-4 my-4">
+          <button
+            onClick={handlePrev}
+            disabled={currentPage === 1}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            ← Anterior
+          </button>
 
+          <span>Página {currentPage} de {totalPages}</span>
+
+          <button
+            onClick={handleNext}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+          >
+            Siguiente →
+          </button>
+        </div>
+      )}
       {/* Contenedor global de Toasts */}
       <ToastContainer />
     </DashboardLayout>

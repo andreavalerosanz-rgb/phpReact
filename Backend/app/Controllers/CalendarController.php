@@ -6,9 +6,12 @@ use App\Core\DB;
 class CalendarController extends Controller {
 
     /**
-     * Calendario global — aplica filtros por owner
+     * Eventos del calendario para:
+     * - user → solo sus reservas
+     * - hotel → reservas cuyo id_hotel = ownerId
+     * - admin → TODAS las reservas
      */
-   public function events() {
+    public function events() {
 
     $from = $this->query('from', date('Y-m-01'));
     $to   = $this->query('to', date('Y-m-t'));
@@ -16,46 +19,63 @@ class CalendarController extends Controller {
     $role    = $this->query('role', null);
     $ownerId = $this->query('owner', null);
 
-    // ✔ Incluir reservas con FECHA DE ENTRADA o FECHA DE SALIDA
-  $sql = "SELECT 
-            id_reserva AS id,
-            localizador,
-            id_tipo_reserva,
+    // Base query: incluir IDA o VUELTA entre fechas
+    $sql = "SELECT 
+                id_reserva AS id,
+                localizador,
+                id_tipo_reserva,
 
-            fecha_entrada,
-            hora_entrada,
+                fecha_entrada,
+                hora_entrada,
 
-            fecha_vuelo_salida,
-            hora_vuelo_salida,
+                fecha_vuelo_salida,
+                hora_vuelo_salida,
 
-            id_hotel,
-            id_destino,
-            id_vehiculo,
+                id_hotel,
+                id_destino,
+                id_vehiculo
 
-            tipo_owner,
-            id_owner
+            FROM transfer_reservas
+            WHERE
+                (
+                    (fecha_entrada BETWEEN ? AND ?)
+                    OR
+                    (fecha_vuelo_salida BETWEEN ? AND ?)
+                )
+    ";
 
-        FROM transfer_reservas
-        WHERE
-            (
-                (fecha_entrada BETWEEN ? AND ?)
-                OR
-                (fecha_vuelo_salida BETWEEN ? AND ?)
-            )
-";
+    $params = [$from, $to, $from, $to];
 
-$params = [$from, $to, $from, $to];
+    /**
+     * =============================
+     * FILTRO SEGÚN TIPO DE USUARIO
+     * =============================
+     */
 
-if ($role && $ownerId) {
-    $sql .= " AND tipo_owner = ? AND id_owner = ?";
-    $params[] = $role;
-    $params[] = (int)$ownerId;
-}
+    // ADMIN → ve TODO
+    if ($role === 'admin') {
+        // no añadimos filtros
+    }
+
+    // HOTEL → ver reservas asociadas a SU hotel
+    else if ($role === 'hotel' && $ownerId) {
+        $sql .= " AND id_hotel = ?";
+        $params[] = (int)$ownerId;
+    }
+
+    // USER → ver solo sus reservas
+    else if ($role === 'user' && $ownerId) {
+        $sql .= " AND id_owner = ? AND tipo_owner = 'user'";
+        $params[] = (int)$ownerId;
+    }
+
+    // ejecutar
     $st = DB::pdo()->prepare($sql);
     $st->execute($params);
 
     $reservas = $st->fetchAll();
 
+    // Preparar fecha completa
     foreach ($reservas as &$r) {
 
         if (!empty($r['fecha_entrada']) && !empty($r['hora_entrada'])) {
@@ -71,4 +91,5 @@ if ($role && $ownerId) {
 
     return $this->json($reservas);
 }
+
 }

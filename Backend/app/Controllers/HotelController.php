@@ -6,6 +6,121 @@ use App\Core\DB;
 
 class HotelController extends Controller {
 
+    // ===============================
+// TODAS LAS RESERVAS DE UN HOTEL
+// ===============================
+public function hotelCalendar($hotelId)
+{
+    $sql = "SELECT 
+                id_reserva AS id,
+                localizador,
+                id_tipo_reserva,
+
+                fecha_entrada,
+                hora_entrada,
+
+                fecha_vuelo_salida,
+                hora_vuelo_salida,
+
+                id_hotel,
+                id_destino,
+                id_vehiculo,
+
+                origen_vuelo_entrada,
+                origen_vuelo_salida,
+                numero_vuelo_entrada,
+                numero_vuelo_salida
+            FROM transfer_reservas
+            WHERE id_hotel = ?
+            ORDER BY id_reserva DESC";
+
+    $st = DB::pdo()->prepare($sql);
+    $st->execute([(int)$hotelId]);
+
+    $reservas = $st->fetchAll();
+
+    // Generar fecha completa como calendar/events
+    foreach ($reservas as &$r) {
+
+        if (!empty($r['fecha_entrada']) && !empty($r['hora_entrada'])) {
+            $r['fecha_completa'] = $r['fecha_entrada']."T".$r['hora_entrada'];
+        }
+        elseif (!empty($r['fecha_vuelo_salida']) && !empty($r['hora_vuelo_salida'])) {
+            $r['fecha_completa'] = $r['fecha_vuelo_salida']."T".$r['hora_vuelo_salida'];
+        }
+        else {
+            $r['fecha_completa'] = null;
+        }
+    }
+
+    return $this->json($reservas);
+}
+
+// =========================================================
+// CALENDARIO DEL HOTEL (filtrado con from=YYYY-MM-DD & to)
+// =========================================================
+public function hotelCalendarView($hotelId)
+{
+    $from = $_GET['from'] ?? null;
+    $to   = $_GET['to'] ?? null;
+
+    if (!$from || !$to) {
+        return $this->json(['error'=>'Faltan parámetros from/to'], 400);
+    }
+
+    $sql = "SELECT 
+                id_reserva AS id,
+                localizador,
+                id_tipo_reserva,
+
+                fecha_entrada,
+                hora_entrada,
+
+                fecha_vuelo_salida,
+                hora_vuelo_salida,
+
+                id_hotel,
+                id_destino,
+                id_vehiculo,
+
+                origen_vuelo_entrada,
+                origen_vuelo_salida,
+                numero_vuelo_entrada,
+                numero_vuelo_salida
+            FROM transfer_reservas
+            WHERE id_hotel = ?
+              AND (
+                    (fecha_entrada BETWEEN ? AND ?)
+                 OR (fecha_vuelo_salida BETWEEN ? AND ?)
+              )
+            ORDER BY id_reserva DESC";
+
+    $st = DB::pdo()->prepare($sql);
+    $st->execute([
+        (int)$hotelId,
+        $from, $to,
+        $from, $to
+    ]);
+
+    $reservas = $st->fetchAll();
+
+    foreach ($reservas as &$r) {
+        if (!empty($r['fecha_entrada']) && !empty($r['hora_entrada'])) {
+            $r['fecha_completa'] = $r['fecha_entrada']."T".$r['hora_entrada'];
+        }
+        elseif (!empty($r['fecha_vuelo_salida']) && !empty($r['hora_vuelo_salida'])) {
+            $r['fecha_completa'] = $r['fecha_vuelo_salida']."T".$r['hora_vuelo_salida'];
+        }
+        else {
+            $r['fecha_completa'] = null;
+        }
+    }
+
+    return $this->json($reservas);
+}
+
+
+
     // Listar reservas del hotel
     public function reservas($hotelId){
         $sql = "SELECT * FROM transfer_reservas
@@ -29,6 +144,7 @@ class HotelController extends Controller {
 
     return $this->json($hotel);
 }
+
 
 
     public function index() {

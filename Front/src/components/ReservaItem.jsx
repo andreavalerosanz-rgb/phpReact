@@ -4,6 +4,11 @@ import { IconEdit, IconX, IconClockHour4 } from "@tabler/icons-react";
 
 const ReservaItem = ({ reserva, onEdit, onCancel }) => {
 
+  const esAdmin = reserva?.raw?.tipo_owner === "admin"
+    || reserva?.raw?.role === "admin"
+    || localStorage.getItem("userData")?.includes('"type":"admin"');
+
+
   // La fecha siempre viene en reserva.fecha
   // Pero puede venir "nullTnull", así que lo limpiamos.
   const fechaRaw = reserva.fecha;
@@ -21,7 +26,7 @@ const ReservaItem = ({ reserva, onEdit, onCancel }) => {
 
 
 
-  const bloqueada = horasRestantes < 48;
+  const bloqueada = !esAdmin && horasRestantes < 48;
   const finalizada = horasRestantes < 0;
 
   console.log("DEBUG RESERVA ITEM:", reserva);

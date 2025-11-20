@@ -61,7 +61,7 @@ const buildUrl = (user, currentDate) => {
   let query = ""
 
   if (user.type === "user") query = `role=user&owner=${user.id}`
-  else if (user.type === "hotel") query = `role=hotel&owner=${user.hotel_id}`
+  else if (user.type === "hotel") query = query = `role=hotel&owner=${user.id}`
   else if (user.type === "admin") query = `role=admin&owner=${user.id}`
 
   return `${base}${query}&from=${first}&to=${last}`
