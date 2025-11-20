@@ -21,8 +21,10 @@ import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
 
 export default function FormularioHotelAeropuerto({ onCancel }) {
+
     const [vehiculos, setVehiculos] = useState([]);
     const [hoteles, setHoteles] = useState([]);
+    const [usuarios, setUsuarios] = useState([]);
     const user = JSON.parse(localStorage.getItem("userData"));
 
     const [form, setForm] = useState({
@@ -36,91 +38,106 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
         viajeros: "",
         nombre: "",
         email: "",
-        telefono: ""
+        telefono: "",
+        id_viajero: ""
     });
 
     const hoy = new Date().toISOString().split("T")[0];
     const [errorFecha, setErrorFecha] = useState("");
     const [reservaConfirmada, setReservaConfirmada] = useState(false);
 
+    // 🔵 Cargar usuarios si admin/hotel
     useEffect(() => {
-        async function cargarDatos() {
-            try {
-                const rVehiculos = await fetch("http://localhost:8080/api/vehiculos");
-                const dataVehiculos = await rVehiculos.json();
-                setVehiculos(dataVehiculos);
-
-                const rHoteles = await fetch("http://localhost:8080/api/hoteles");
-                const dataHoteles = await rHoteles.json();
-                setHoteles(dataHoteles);
-            } catch (err) {
-                console.error("Error cargando datos:", err);
-            }
+        if (user.type === "admin" || user.type === "hotel") {
+            fetch("http://localhost:8080/api/admin/users")
+                .then(r => r.json())
+                .then(data => setUsuarios(data));
         }
-
-        cargarDatos();
     }, []);
 
+    // 🔵 Cargar datos iniciales
+    useEffect(() => {
+        async function cargar() {
+            const rVeh = await fetch("http://localhost:8080/api/vehiculos");
+            setVehiculos(await rVeh.json());
+
+            const rHot = await fetch("http://localhost:8080/api/hoteles");
+            const hotelesData = await rHot.json();
+            setHoteles(hotelesData);
+
+            // Hotel solo puede seleccionar su propio hotel
+            if (user.type === "hotel") {
+                setForm(f => ({ ...f, hotel: String(user.id) }));
+            }
+        }
+        cargar();
+    }, []);
+
+    // 🔵 Envío de reserva
     async function enviarReserva() {
 
-        const user = JSON.parse(localStorage.getItem("userData"));
-        if (!user) {
-            alert("No se encontró el usuario en sesión");
+        // Asignación de propietario REAL de la reserva
+        let tipoOwner = "user";
+        let idOwner = user.id;
+
+        // Caso 1: admin o hotel seleccionan a un viajero
+        if (user.type === "admin" || user.type === "hotel") {
+            if (!form.id_viajero) {
+                alert("Debes seleccionar el cliente real de la reserva");
+                return;
+            }
+            tipoOwner = "user"; // siempre viajero
+            idOwner = Number(form.id_viajero);
+        }
+
+        // Caso 2: hotel reservando para sí mismo
+        if (user.type === "hotel" && form.id_viajero === String(user.id)) {
+            tipoOwner = "hotel";
+            idOwner = user.id;
+        }
+
+        const body = {
+            tipo: "VUELTA",
+
+            id_hotel: Number(form.hotel),
+            id_destino: Number(form.hotel),
+
+            id_vehiculo: Number(form.vehiculo),
+            num_viajeros: Number(form.viajeros),
+
+            email_cliente: form.email,
+            telefono_cliente: form.telefono,
+            nombre_cliente: form.nombre,
+
+            fecha_vuelo_salida: form.fechaVuelo,
+            hora_vuelo_salida: form.horaVuelo,
+            numero_vuelo_salida: form.vuelo,
+            origen_vuelo_salida: form.aeropuertoDestino,
+            hora_recogida_hotel: form.horaRecogida,
+
+            tipo_owner: tipoOwner,
+            id_owner: idOwner
+        };
+
+        const r = await fetch("http://localhost:8080/api/reservas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+
+        if (!r.ok) {
+            alert("Error al crear reserva");
             return;
         }
 
-        try {
-            const body = {
-                tipo: "VUELTA",
-
-                id_hotel: Number(form.hotel),
-                id_destino: Number(form.hotel),
-
-                id_vehiculo: Number(form.vehiculo),
-                num_viajeros: Number(form.viajeros),
-
-                email_cliente: form.email,
-                telefono_cliente: form.telefono,
-                nombre_cliente: form.nombre,
-
-                fecha_vuelo_salida: form.fechaVuelo,
-                hora_vuelo_salida: form.horaVuelo,
-                numero_vuelo_salida: form.vuelo,
-                origen_vuelo_salida: form.aeropuertoDestino,
-                hora_recogida_hotel: form.horaRecogida,
-
-
-                tipo_owner: user.type,   // ← ESTE es el campo correcto
-                id_owner: user.id
-
-            };
-
-
-            console.log("Enviando al backend (VUELTA):", body);
-
-            const r = await fetch("http://localhost:8080/api/reservas", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-
-            if (!r.ok) {
-                const errText = await r.text();
-                console.error("Error en backend:", errText);
-                alert("Error al crear reserva");
-                return;
-            }
-
-            setReservaConfirmada(true);
-        } catch (err) {
-            console.error(err);
-            alert("Error al procesar reserva");
-        }
+        setReservaConfirmada(true);
     }
 
     return (
         <Card className="w-full max-w-3xl mx-auto">
+
             <div className="md:p-6!">
+
                 {!reservaConfirmada && (
                     <CardHeader className="text-center mb-6">
                         <CardTitle className="text-2xl">Hotel → Aeropuerto</CardTitle>
@@ -131,6 +148,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                 )}
 
                 <CardContent>
+
                     {reservaConfirmada ? (
                         <ConfirmacionReserva
                             onBack={() => {
@@ -142,6 +160,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                         <>
                             <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
 
+                                {/* Fecha vuelo */}
                                 <Field>
                                     <FieldLabel>Fecha del vuelo</FieldLabel>
                                     <Input
@@ -149,14 +168,14 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                         min={hoy}
                                         value={form.fechaVuelo}
                                         onChange={(e) => {
-                                            const valor = e.target.value;
-                                            if (valor < hoy) {
+                                            const v = e.target.value;
+                                            if (v < hoy) {
                                                 setErrorFecha("⚠️ La fecha no puede ser anterior a hoy.");
                                                 setForm({ ...form, fechaVuelo: "" });
                                                 return;
                                             }
                                             setErrorFecha("");
-                                            setForm({ ...form, fechaVuelo: valor });
+                                            setForm({ ...form, fechaVuelo: v });
                                         }}
                                     />
                                     {errorFecha && (
@@ -164,6 +183,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     )}
                                 </Field>
 
+                                {/* Hora vuelo */}
                                 <Field>
                                     <FieldLabel>Hora del vuelo</FieldLabel>
                                     <Input
@@ -175,6 +195,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     />
                                 </Field>
 
+                                {/* Numero vuelo */}
                                 <Field>
                                     <FieldLabel>Número de vuelo</FieldLabel>
                                     <Input
@@ -186,20 +207,19 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     />
                                 </Field>
 
+                                {/* Aeropuerto destino */}
                                 <Field>
                                     <FieldLabel>Aeropuerto destino</FieldLabel>
                                     <Input
                                         placeholder="Ej. MAD - Madrid Barajas"
                                         value={form.aeropuertoDestino}
                                         onChange={(e) =>
-                                            setForm({
-                                                ...form,
-                                                aeropuertoDestino: e.target.value.toUpperCase(),
-                                            })
+                                            setForm({ ...form, aeropuertoDestino: e.target.value })
                                         }
                                     />
                                 </Field>
 
+                                {/* Hora recogida */}
                                 <Field>
                                     <FieldLabel>Hora de recogida en hotel</FieldLabel>
                                     <Input
@@ -211,30 +231,35 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     />
                                 </Field>
 
+                                {/* Hotel */}
                                 <Field>
                                     <FieldLabel>Hotel</FieldLabel>
+
                                     <Select
                                         value={form.hotel}
                                         onValueChange={(v) => setForm({ ...form, hotel: v })}
+                                        disabled={user.type === "hotel"}
                                     >
                                         <SelectTrigger className="h-11 rounded-lg!">
                                             <SelectValue placeholder="Selecciona un hotel" />
                                         </SelectTrigger>
+
                                         <SelectContent>
-                                            {hoteles.map((hotel) => (
-                                                <SelectItem
-                                                    key={hotel.id_hotel}
-                                                    value={String(hotel.id_hotel)}
-                                                >
-                                                    {hotel.nombre}
-                                                </SelectItem>
-                                            ))}
+                                            {hoteles
+                                                .filter(h => user.type !== "hotel" || h.id_hotel === user.id)
+                                                .map((hotel) => (
+                                                    <SelectItem key={hotel.id_hotel} value={String(hotel.id_hotel)}>
+                                                        {hotel.nombre}
+                                                    </SelectItem>
+                                                ))}
                                         </SelectContent>
                                     </Select>
                                 </Field>
 
+                                {/* Vehículo */}
                                 <Field>
-                                    <FieldLabel className="mb-1">Vehículo</FieldLabel>
+                                    <FieldLabel>Vehículo</FieldLabel>
+
                                     <Select
                                         value={form.vehiculo}
                                         onValueChange={(v) => setForm({ ...form, vehiculo: v })}
@@ -245,10 +270,7 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
 
                                         <SelectContent>
                                             {vehiculos.map((v) => (
-                                                <SelectItem
-                                                    key={v.id_vehiculo}
-                                                    value={String(v.id_vehiculo)}
-                                                >
+                                                <SelectItem key={v.id_vehiculo} value={String(v.id_vehiculo)}>
                                                     {v["Descripción"]}
                                                 </SelectItem>
                                             ))}
@@ -256,15 +278,41 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     </Select>
                                 </Field>
 
+                                {/* SELECTOR CLIENTE */}
+                                {(user.type === "admin" || user.type === "hotel") && (
+                                    <Field>
+                                        <FieldLabel>Usuario / Cliente</FieldLabel>
+                                        <Select
+                                            value={form.id_viajero}
+                                            onValueChange={(v) => setForm({ ...form, id_viajero: v })}
+                                        >
+                                            <SelectTrigger className="h-11 rounded-lg!">
+                                                <SelectValue placeholder="Selecciona un cliente" />
+                                            </SelectTrigger>
+
+                                            <SelectContent>
+                                                {usuarios.map((u) => (
+                                                    <SelectItem key={u.id_usuario} value={String(u.id_usuario)}>
+                                                        {u.nombre} {u.apellido1} ({u.email})
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </Field>
+                                )}
+
+                                {/* NÚMERO DE VIAJEROS */}
                                 <Field>
                                     <div className="flex items-center gap-2">
                                         <FieldLabel className="m-0">Número de viajeros</FieldLabel>
+
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <button className="size-6 flex items-center justify-center rounded-full">
                                                     <Info className="size-4" />
                                                 </button>
                                             </TooltipTrigger>
+
                                             <TooltipContent
                                                 side="top"
                                                 className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2"
@@ -288,10 +336,9 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     />
                                 </Field>
 
+                                {/* NOMBRE */}
                                 <Field>
-                                    <FieldLabel className="flex items-center h-[24px]">
-                                        Nombre completo
-                                    </FieldLabel>
+                                    <FieldLabel>Nombre completo</FieldLabel>
                                     <Input
                                         value={form.nombre}
                                         onChange={(e) =>
@@ -300,8 +347,9 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     />
                                 </Field>
 
+                                {/* EMAIL */}
                                 <Field>
-                                    <FieldLabel className="mb-1">Email</FieldLabel>
+                                    <FieldLabel>Email</FieldLabel>
                                     <Input
                                         type="email"
                                         value={form.email}
@@ -311,39 +359,43 @@ export default function FormularioHotelAeropuerto({ onCancel }) {
                                     />
                                 </Field>
 
-                                <Field className="mb-0">
-                                    <FieldLabel className="mb-1">Teléfono</FieldLabel>
+                                {/* TELÉFONO */}
+                                <Field>
+                                    <FieldLabel>Teléfono</FieldLabel>
                                     <Input
                                         type="tel"
                                         value={form.telefono}
-                                        onChange={(e) => setForm({ ...form, telefono: e.target.value })}
+                                        onChange={(e) =>
+                                            setForm({ ...form, telefono: e.target.value })
+                                        }
                                     />
                                 </Field>
 
-                                <Field className="col-span-2 mt-0">
-                                    <div className="flex justify-end gap-3">
-
-                                        <Button
-                                            variant="outline"
-                                            className="!rounded-lg"
-                                            onClick={onCancel}
-                                        >
-                                            Cancelar
-                                        </Button>
-
-                                        <Button
-                                            className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
-                                            onClick={enviarReserva}
-                                        >
-                                            Confirmar Reserva
-                                        </Button>
-                                    </div>
-                                </Field>
                             </FieldGroup>
+
+                            {/* BOTONES */}
+                            <div className="w-full flex justify-end mt-8! gap-2">
+                                <Button
+                                    variant="outline"
+                                    className="!rounded-lg"
+                                    onClick={onCancel}
+                                >
+                                    Cancelar
+                                </Button>
+
+                                <Button
+                                    className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
+                                    onClick={enviarReserva}
+                                >
+                                    Confirmar Reserva
+                                </Button>
+                            </div>
                         </>
                     )}
+
                 </CardContent>
+
             </div>
-        </Card >
+        </Card>
     );
 }

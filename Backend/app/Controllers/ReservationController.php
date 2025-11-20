@@ -281,28 +281,22 @@ if ($tipoTxt === 'IDA_VUELTA') {
     ? strtolower(trim($in['tipo_owner']))
     : null;
 
-switch ($tipoOwner) {
-    case 'user':
-        if (!$this->fkExists('transfer_viajeros', 'id_viajero', $idOwner)) {
-            $errors['id_owner'] = "El viajero no existe (id_viajero=$idOwner)";
-        }
-        break;
-
-    case 'admin':
-        if (!$this->fkExists('transfer_admin', 'id_admin', $idOwner)) {
-            $errors['id_owner'] = "El admin no existe (id_admin=$idOwner)";
-        }
-        break;
-
-    case 'hotel':
-        if (!$this->fkExists('transfer_hoteles', 'id_hotel', $idOwner)) {
-            $errors['id_owner'] = "El hotel no existe (id_hotel=$idOwner)";
-        }
-        break;
-
-    default:
-        $errors['tipo_owner'] = "tipo_owner debe ser user | admin | hotel";
+// El owner real debe ser SIEMPRE un viajero (el cliente real)
+if ($tipoOwner === "user") {
+    if (!$this->fkExists('transfer_viajeros', 'id_viajero', $idOwner)) {
+        $errors['id_owner'] = "El viajero no existe (id_viajero=$idOwner)";
+    }
 }
+// excepción: si hotel se asigna a sí mismo como pasajero
+elseif ($tipoOwner === "hotel") {
+    if (!$this->fkExists('transfer_hoteles', 'id_hotel', $idOwner)) {
+        $errors['id_owner'] = "El hotel no existe (id_hotel=$idOwner)";
+    }
+}
+else {
+    $errors['tipo_owner'] = "tipo_owner debe ser 'user' o 'hotel'";
+}
+
 
         if (!$this->fkExists('transfer_tipo_reservas','id_tipo_reserva',(int)$idTipo)) {
             $errors['id_tipo_reserva'] = "No existe";
@@ -323,6 +317,22 @@ switch ($tipoOwner) {
         if (!empty($errors)) {
             return $this->json(['error' => 'VALIDATION_ERROR', 'details' => $errors], 400);
         }
+
+        // --------------------------
+// 7.1 Restricción especial para tipo_owner=hotel
+// --------------------------
+if ($tipoOwner === 'hotel') {
+
+    // El hotel SOLO puede reservar para su propio hotel
+    if ($idOwner !== $idHotel || $idOwner !== $idDestino) {
+
+        return $this->json([
+            'error' => 'HOTEL_RESTRICTION',
+            'message' => 'Un usuario hotel solo puede crear reservas para su propio hotel'
+        ], 403);
+    }
+}
+
 
         // --------------------------
         // 8. Normalizar horas

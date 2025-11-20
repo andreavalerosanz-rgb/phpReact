@@ -62,7 +62,7 @@ export function AppSidebar({
           <SidebarMenu className="p-1">
             <SidebarMenuItem>
               <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-0">
-                <Link to="/dashboard">
+                <Link to="/">
                   <IconInnerShadowTop className="!size-5" />
                   <span className="text-base font-semibold">{companyName}</span>
                 </Link>

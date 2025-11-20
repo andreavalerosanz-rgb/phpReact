@@ -14,7 +14,7 @@ const NuevaReserva = () => {
   return (
     <DashboardLayout currentUser={currentUser}>
       
-      <main className="flex-grow container mt-20!">
+      <main className="flex-grow container mt-10!">
 
         <ReservaWizard />
 
