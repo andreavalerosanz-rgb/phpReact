@@ -5,49 +5,90 @@ const vehiculos = [
   {
     id: 1,
     titulo: "Sedán / Turismo",
-    icono: <Car className="w-12 h-12 text-[var(--dark-slate-gray)]" />,
+    icono: <Car className="w-16 h-16 text-dark-slate-gray" />,
     descripcion:
       "Perfecto para traslados individuales o en pareja. Cómodo, rápido y elegante.",
   },
   {
     id: 2,
     titulo: "Minivan",
-    icono: <CarFront className="w-12 h-12 text-[var(--dark-slate-gray)]" />,
+    icono: <CarFront className="w-16 h-16 text-dark-slate-gray" />,
     descripcion:
       "Ideal para familias o grupos de hasta 6 pasajeros. Amplio espacio para equipaje.",
   },
   {
     id: 3,
     titulo: "Minibús",
-    icono: <BusFront className="w-12 h-12 text-[var(--dark-slate-gray)]" />,
+    icono: <BusFront className="w-16 h-16 text-dark-slate-gray" />,
     descripcion:
-      "Opciones para grupos grandes, eventos, o empresas. Hasta 20 pasajeros.",
+      "Opciones para grupos grandes, eventos o empresas. Hasta 20 pasajeros.",
   },
 ]
 
 const ServiciosVehiculos = () => {
   return (
-    <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-10">
+    <section className="py-5">
+      <div className="container">
 
-      {vehiculos.map((v) => (
-        <div
-          key={v.id}
-          className="bg-white border border-gray-200 rounded-2xl shadow-sm p-2! 
-                     flex flex-col items-center text-center hover:shadow-lg 
-                     transition-all mt-10! mb-10!"
-        >
-          <div className="mb-6">{v.icono}</div>
-
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            {v.titulo}
-          </h3>
-
-          <p className="text-gray-700 leading-relaxed text-base">
-            {v.descripcion}
-          </p>
+        {/* TÍTULO UNIFICADO */}
+        <div className="row text-center mb-5">
+          <div className="col">
+            <h2 className="display-5 fw-bold text-dark-slate-gray mb-3">
+              Nuestros Vehículos
+            </h2>
+            <p className="lead text-dim-gray">
+              La opcción perfecta para cada necesidad de traslado
+            </p>
+          </div>
         </div>
-      ))}
 
+        <div className="row align-items-start">
+
+          {/* IMAGEN A LA IZQUIERDA */}
+          <div className="col-lg-5 mb-4 mt-20!">
+            <img 
+              src="/vehiculos-flota.png"
+              alt="Vehículos disponibles"
+              className="img-fluid rounded shadow-sm"
+            />
+          </div>
+
+          {/* CARDS A LA DERECHA EN UNA SOLA COLUMNA */}
+          <div className="col-lg-7">
+            <div className="d-flex flex-column gap-4">
+
+              {vehiculos.map((v) => (
+                <div
+                  key={v.id}
+                  className="card border-0 shadow-sm p-4 rounded-4 bg-ivory"
+                >
+                  <div className="d-flex gap-4 align-items-center">
+
+                    {/* ICONO */}
+                    <div className="p-4 bg-white rounded-circle shadow-sm">
+                      {v.icono}
+                    </div>
+
+                    {/* TEXTO */}
+                    <div>
+                      <h4 className="fw-bold text-dark-slate-gray mb-2">
+                        {v.titulo}
+                      </h4>
+                      <p className="text-dim-gray mb-0">
+                        {v.descripcion}
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+              ))}
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
     </section>
   )
 }

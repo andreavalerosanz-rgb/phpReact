@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from '../hooks/useTranslation'
 
 // Accept 'isLoggedIn' as a prop
-const Header = ({ isLoggedIn }) => { 
+const Header = ({ isLoggedIn }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { t, currentLanguage, changeLanguage, getAvailableLanguages, updateCount } = useTranslation()
 
@@ -18,18 +18,23 @@ const Header = ({ isLoggedIn }) => {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div className="container">
-        <Link className="navbar-brand fw-bold text-primary" to="/">
+        <Link className="navbar-brand fw-bold text-primary d-flex align-items-center gap-2" to="/">
+          <img
+            src="/logo-img.png"
+            alt="Logo"
+            style={{ height: "32px", width: "auto" }}
+          />
           {t('common.brand')}
         </Link>
-        
-        <button 
-          className="navbar-toggler" 
-          type="button" 
+
+        <button
+          className="navbar-toggler"
+          type="button"
           onClick={toggleMenu}
         >
           <span className="navbar-toggler-icon"></span>
         </button>
-        
+
         {/* NOTE: You'll also need to manage the responsive collapse behavior 
             of the 'navbar-collapse' class, which is missing from the original structure. 
             For now, I'm keeping your 'flex' structure. */}
@@ -42,10 +47,10 @@ const Header = ({ isLoggedIn }) => {
               <Link className="nav-link fw-semibold" to="/servicios">{t('common.services')}</Link>
             </li>
           </ul>
-          
+
           <div className="d-flex gap-2 align-items-center">
-            <select 
-              className="form-select form-select-sm me-2" 
+            <select
+              className="form-select form-select-sm me-2"
               style={{ width: 'auto' }}
               value={currentLanguage}
               onChange={handleLanguageChange}
@@ -56,12 +61,12 @@ const Header = ({ isLoggedIn }) => {
                 </option>
               ))}
             </select>
-            
+
             {/* CONDITIONAL RENDERING LOGIC */}
             {isLoggedIn ? (
               // Show Dashboard when logged in
-              <Link 
-                to="/dashboard" 
+              <Link
+                to="/dashboard"
                 className="btn btn-success fw-bold" // Changed color for emphasis
               >
                 {t('common.dashboard') || 'Dashboard'}
@@ -69,21 +74,21 @@ const Header = ({ isLoggedIn }) => {
             ) : (
               // Show Login and Register when logged out
               <>
-                <Link 
-                  to="/login" 
+                <Link
+                  to="/login"
                   className="btn btn-outline-primary"
                 >
                   {t('common.login')}
                 </Link>
-                <Link 
-                  to="/registro" 
+                <Link
+                  to="/registro"
                   className="btn btn-primary"
                 >
                   {t('common.register')}
                 </Link>
               </>
             )}
-            
+
           </div>
         </div>
       </div>
