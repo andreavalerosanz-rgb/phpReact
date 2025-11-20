@@ -97,55 +97,85 @@ export function SignupForm({ ...props }) {
             {/* GRID 2 columnas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-              <Field>
-                <FieldLabel htmlFor="name">Nombre</FieldLabel>
-                <Input id="name" name="name" type="text" required />
-              </Field>
+              {/* ---- CAMPOS HOTEL ---- */}
+              {tipoCliente === "hotel" && (
+                <>
+                  <Field>
+                    <FieldLabel htmlFor="name">Nombre del hotel</FieldLabel>
+                    <Input id="name" name="name" type="text" required />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="apellido1">Apellido 1</FieldLabel>
-                <Input id="apellido1" name="apellido1" type="text" required />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input id="email" name="email" type="email" required />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="apellido2">Apellido 2</FieldLabel>
-                <Input id="apellido2" name="apellido2" type="text" />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                    <Input id="password" name="password" type="password" required />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="direccion">Dirección</FieldLabel>
-                <Input id="direccion" name="direccion" type="text" required />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="confirm-password">Confirmar contraseña</FieldLabel>
+                    <Input id="confirm-password" name="confirm-password" type="password" required />
+                  </Field>
+                </>
+              )}
 
-              <Field>
-                <FieldLabel htmlFor="codigoPostal">Código Postal</FieldLabel>
-                <Input id="codigoPostal" name="codigoPostal" type="text" required />
-              </Field>
+              {/* ---- CAMPOS PARTICULAR ---- */}
+              {tipoCliente !== "hotel" && (
+                <>
+                  <Field>
+                    <FieldLabel htmlFor="name">Nombre</FieldLabel>
+                    <Input id="name" name="name" type="text" required />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="ciudad">Ciudad</FieldLabel>
-                <Input id="ciudad" name="ciudad" type="text" required />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="apellido1">Apellido 1</FieldLabel>
+                    <Input id="apellido1" name="apellido1" type="text" required />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="pais">País</FieldLabel>
-                <Input id="pais" name="pais" type="text" required />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="apellido2">Apellido 2</FieldLabel>
+                    <Input id="apellido2" name="apellido2" type="text" />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input id="email" name="email" type="email" required />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="direccion">Dirección</FieldLabel>
+                    <Input id="direccion" name="direccion" type="text" required />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-                <Input id="password" name="password" type="password" required />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="codigoPostal">Código Postal</FieldLabel>
+                    <Input id="codigoPostal" name="codigoPostal" type="text" required />
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="confirm-password">Confirmar contraseña</FieldLabel>
-                <Input id="confirm-password" name="confirm-password" type="password" required />
-              </Field>
+                  <Field>
+                    <FieldLabel htmlFor="ciudad">Ciudad</FieldLabel>
+                    <Input id="ciudad" name="ciudad" type="text" required />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="pais">País</FieldLabel>
+                    <Input id="pais" name="pais" type="text" required />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="email">Email</FieldLabel>
+                    <Input id="email" name="email" type="email" required />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+                    <Input id="password" name="password" type="password" required />
+                  </Field>
+
+                  <Field>
+                    <FieldLabel htmlFor="confirm-password">Confirmar contraseña</FieldLabel>
+                    <Input id="confirm-password" name="confirm-password" type="password" required />
+                  </Field>
+                </>
+              )}
 
             </div>
 
@@ -160,6 +190,7 @@ export function SignupForm({ ...props }) {
             </div>
 
           </form>
+
         </CardContent>
       </div>
     </Card>
