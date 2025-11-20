@@ -3,293 +3,251 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem
-} from "@/components/ui/select";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger
-} from "@/components/ui/tooltip";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import ConfirmacionReserva from "./ConfirmacionReserva";
 
 export default function FormularioAeropuertoHotel({ onCancel }) {
+  const [vehiculos, setVehiculos] = useState([]);
+  const [hoteles, setHoteles] = useState([]);
+  const [zonas, setZonas] = useState([]);
+  const [form, setForm] = useState({
+    fechaLlegada: "",
+    horaLlegada: "",
+    vuelo: "",
+    aeropuertoOrigen: "",
+    hotel: "",
+    zona: "",
+    vehiculo: "",
+    viajeros: 1,
+    nombre: "",
+    email: "",
+    telefono: ""
+  });
 
-    const [vehiculos, setVehiculos] = useState([]);
-    const [hoteles, setHoteles] = useState([]);
+  const hoy = new Date().toISOString().split("T")[0];
+  const [errorFecha, setErrorFecha] = useState("");
+  const [reservaConfirmada, setReservaConfirmada] = useState(false);
 
-    const [form, setForm] = useState({
-        fechaLlegada: "",
-        horaLlegada: "",
-        vuelo: "",
-        aeropuertoOrigen: "",
-        hotel: "",
-        viajeros: "",
-        nombre: "",
-        email: "",
-        telefono: "",
-        vehiculo: ""
-    });
+  // Cargar datos del backend
+  useEffect(() => {
+    async function cargarDatos() {
+      try {
+        const [resVehiculos, resHoteles, resZonas] = await Promise.all([
+          fetch("http://localhost:8080/api/vehiculos"),
+          fetch("http://localhost:8080/api/hoteles"),
+          fetch("http://localhost:8080/api/zonas")
+        ]);
 
-    const hoy = new Date().toISOString().split("T")[0];
-    const [errorFecha, setErrorFecha] = useState("");
-    const [reservaConfirmada, setReservaConfirmada] = useState(false);
+        const [dataVehiculos, dataHoteles, dataZonas] = await Promise.all([
+          resVehiculos.json(),
+          resHoteles.json(),
+          resZonas.json()
+        ]);
 
+        setVehiculos(dataVehiculos);
+        setHoteles(dataHoteles);
+        setZonas(dataZonas);
 
+      } catch (err) {
+        console.error("Error cargando datos:", err);
+      }
+    }
+    cargarDatos();
+  }, []);
 
-    useEffect(() => {
-        async function cargarDatos() {
-            try {
-                // Vehículos reales desde backend
-                const rVehiculos = await fetch("http://localhost:8080/api/vehiculos");
-                const dataVehiculos = await rVehiculos.json();
-                setVehiculos(dataVehiculos);
-
-                // Hoteles reales desde backend
-                const rHoteles = await fetch("http://localhost:8080/api/hoteles");
-                const dataHoteles = await rHoteles.json();
-                setHoteles(dataHoteles);
-
-            } catch (err) {
-                console.error("Error cargando datos:", err);
-            }
-        }
-
-        cargarDatos();
-    }, []);
-
-    async function enviarReserva() {
-
-        try {
-            const body = {
-                tipo: "IDA", // o "VUELTA" o "IDA_VUELTA"
-
-                id_hotel: Number(form.hotel),
-                id_destino: Number(form.hotel), // mismo hotel como destino
-
-                id_vehiculo: Number(form.vehiculo),
-                num_viajeros: Number(form.viajeros),
-
-                email_cliente: form.email,
-                telefono_cliente: form.telefono,
-                nombre_cliente: form.nombre,
-
-                fecha_entrada: form.fechaLlegada,
-                hora_entrada: form.horaLlegada,
-
-                numero_vuelo_entrada: form.vuelo,
-                origen_vuelo_entrada: form.aeropuertoOrigen,
-
-                role: "user"
-            };
-
-            const fechaReserva = new Date(`${form.fechaLlegada}T${form.horaLlegada}`);
-            const minimo = new Date(Date.now() + 48 * 60 * 60 * 1000);
-
-            if (fechaReserva < minimo) {
-                alert("Debes reservar con al menos 48 horas de antelación.");
-                return;
-            }
-
-            console.log("Enviando al backend:", body);
-
-            const r = await fetch("http://localhost:8080/api/reservas", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(body),
-            });
-
-            if (!r.ok) {
-                const err = await r.text();
-                console.error("Error en backend:", err);
-                alert("Error al crear reserva");
-                return;
-            }
-
-            setReservaConfirmada(true);
-
-        } catch (err) {
-            console.error("Error enviando reserva:", err);
-        }
+  // Enviar reserva
+  async function enviarReserva() {
+    if (!form.hotel || !form.zona || !form.vehiculo) {
+      alert("Debes seleccionar hotel, zona y vehículo");
+      return;
     }
 
-    return (
-        <Card className="w-full max-w-3xl mx-auto">
-            <div className="md:p-6!">
-                {!reservaConfirmada && (
-                    <CardHeader className="text-center mb-6">
-                        <CardTitle className="text-2xl">Aeropuerto → Hotel</CardTitle>
-                        <CardDescription className="p-2 mb-3">
-                            Introduce los detalles de tu llegada
-                        </CardDescription>
-                    </CardHeader>
-                )}
+    const fechaReserva = new Date(`${form.fechaLlegada}T${form.horaLlegada}`);
+    const minimo = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    if (fechaReserva < minimo) {
+      alert("Debes reservar con al menos 48 horas de antelación.");
+      return;
+    }
 
-                <CardContent>
-                    {reservaConfirmada ? (
-                        <ConfirmacionReserva
-                            onBack={() => {
-                                setReservaConfirmada(false);
-                                onCancel();
-                            }}
-                        />
-                    ) : (
-                        <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
+    const body = {
+      tipo: 2, // tipo vuelta / aeropuerto → hotel
+      id_hotel: Number(form.hotel),
+      id_destino: Number(form.zona),
+      id_vehiculo: Number(form.vehiculo),
+      num_viajeros: Number(form.viajeros),
+      nombre_cliente: form.nombre,
+      email_cliente: form.email,
+      telefono_cliente: form.telefono,
+      fecha_entrada: form.fechaLlegada,
+      hora_entrada: form.horaLlegada + ":00",
+      numero_vuelo_entrada: form.vuelo,
+      origen_vuelo_entrada: form.aeropuertoOrigen,
+      role: "user"
+    };
 
-                            <Field>
-                                <FieldLabel>Fecha de llegada</FieldLabel>
-                                <Input
-                                    type="date"
-                                    min={hoy}
-                                    value={form.fechaLlegada}
-                                    onChange={(e) => {
-                                        const valor = e.target.value;
-                                        if (valor < hoy) {
-                                            setErrorFecha("⚠️ La fecha no puede ser anterior a hoy.");
-                                            return setForm({ ...form, fechaLlegada: "" });
-                                        }
-                                        setErrorFecha("");
-                                        setForm({ ...form, fechaLlegada: valor });
-                                    }}
-                                />
-                                {errorFecha && <p className="text-sm text-red-600 mt-1">{errorFecha}</p>}
-                            </Field>
+    console.log("Enviando reserva:", body);
 
-                            <Field>
-                                <FieldLabel>Hora de llegada</FieldLabel>
-                                <Input type="time"
-                                    value={form.horaLlegada}
-                                    onChange={(e) => setForm({ ...form, horaLlegada: e.target.value })} />
-                            </Field>
+    try {
+      const res = await fetch("http://localhost:8080/api/reservas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
 
-                            <Field>
-                                <FieldLabel>Número de vuelo</FieldLabel>
-                                <Input placeholder="Ej. IB1234"
-                                    value={form.vuelo}
-                                    onChange={(e) => setForm({ ...form, vuelo: e.target.value })} />
-                            </Field>
+      if (!res.ok) {
+        const err = await res.json();
+        console.error("Error backend:", err);
+        alert("Error al crear reserva. " + (err.details ? JSON.stringify(err.details) : err.error));
+        return;
+      }
 
-                            <Field>
-                                <FieldLabel>Aeropuerto de origen</FieldLabel>
-                                <Input placeholder="Ej. Madrid-Barajas (MAD)"
-                                    value={form.aeropuertoOrigen}
-                                    onChange={(e) => setForm({ ...form, aeropuertoOrigen: e.target.value })} />
-                            </Field>
+      setReservaConfirmada(true);
 
-                            <Field>
-                                <FieldLabel>Hotel de destino</FieldLabel>
-                                <Select
-                                    value={form.hotel}
-                                    onValueChange={(v) => setForm({ ...form, hotel: v })}
-                                >
-                                    <SelectTrigger className="h-11 rounded-lg!">
-                                        <SelectValue placeholder="Selecciona un hotel" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {hoteles.map((hotel) => (
-                                            <SelectItem key={hotel.id_hotel} value={hotel.id_hotel}>
-                                                {hotel.nombre}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </Field>
+    } catch (err) {
+      console.error("Error enviando reserva:", err);
+      alert("Error al crear reserva");
+    }
+  }
 
-                            <Field>
-                                <FieldLabel>Vehículo</FieldLabel>
-                                <Select
-                                    value={form.vehiculo}
-                                    onValueChange={(v) => setForm({ ...form, vehiculo: v })}
-                                >
-                                    <SelectTrigger className="h-11 rounded-lg!">
-                                        <SelectValue placeholder="Selecciona un vehículo" />
-                                    </SelectTrigger>
+  return (
+    <Card className="w-full max-w-3xl mx-auto">
+      <div className="md:p-6!">
+        {!reservaConfirmada && (
+          <CardHeader className="text-center mb-6">
+            <CardTitle className="text-2xl">Aeropuerto → Hotel</CardTitle>
+            <CardDescription className="p-2 mb-3">
+              Introduce los detalles de tu llegada
+            </CardDescription>
+          </CardHeader>
+        )}
 
-                                    <SelectContent>
-                                        {vehiculos.map((v) => (
-                                            <SelectItem key={v.id_vehiculo} value={String(v.id_vehiculo)}>
-                                                {v.marca} {v.modelo}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </Field>
+        <CardContent>
+          {reservaConfirmada ? (
+            <ConfirmacionReserva onBack={() => { setReservaConfirmada(false); onCancel(); }} />
+          ) : (
+            <FieldGroup className="grid md:grid-cols-2 gap-x-10 gap-y-6">
 
-                            <Field>
-                                <div className="flex items-center gap-2">
-                                    <FieldLabel className="m-0">Número de viajeros</FieldLabel>
+              {/* Fecha y hora */}
+              <Field>
+                <FieldLabel>Fecha de llegada</FieldLabel>
+                <Input
+                  type="date"
+                  min={hoy}
+                  value={form.fechaLlegada}
+                  onChange={e => {
+                    const valor = e.target.value;
+                    const fechaSeleccionada = new Date(valor);
+                    const diferenciaHoras = (fechaSeleccionada - new Date()) / (1000 * 60 * 60);
+                    if (diferenciaHoras < 48) {
+                      setErrorFecha("⚠️ La fecha debe ser al menos 48h después de hoy.");
+                      setForm({ ...form, fechaLlegada: "" });
+                      return;
+                    }
+                    setErrorFecha("");
+                    setForm({ ...form, fechaLlegada: valor });
+                  }}
+                />
+                {errorFecha && <p className="text-sm text-red-600 mt-1">{errorFecha}</p>}
+              </Field>
 
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <button className="size-6 flex items-center justify-center rounded-full">
-                                                <Info className="size-4" />
-                                            </button>
-                                        </TooltipTrigger>
+              <Field>
+                <FieldLabel>Hora de llegada</FieldLabel>
+                <Input type="time" value={form.horaLlegada} onChange={e => setForm({ ...form, horaLlegada: e.target.value })} />
+              </Field>
 
-                                        <TooltipContent
-                                            side="top"
-                                            className="bg-gray-200 text-gray-800 border border-gray-300 shadow-md text-sm rounded-md px-3 py-2"
-                                        >
-                                            Asignaremos uno o varios vehículos del modelo que escojas según el número de viajeros.
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </div>
+              <Field>
+                <FieldLabel>Número de vuelo</FieldLabel>
+                <Input placeholder="Ej. IB1234" value={form.vuelo} onChange={e => setForm({ ...form, vuelo: e.target.value })} />
+              </Field>
 
-                                <Input
-                                    type="number"
-                                    min="1"
-                                    value={form.viajeros}
-                                    onChange={(e) =>
-                                        setForm({
-                                            ...form,
-                                            viajeros: Math.max(1, Number(e.target.value))
-                                        })
-                                    }
-                                />
-                            </Field>
+              <Field>
+                <FieldLabel>Aeropuerto de origen</FieldLabel>
+                <Input placeholder="Ej. Madrid-Barajas (MAD)" value={form.aeropuertoOrigen} onChange={e => setForm({ ...form, aeropuertoOrigen: e.target.value })} />
+              </Field>
 
-                            <Field>
-                                <FieldLabel className="flex items-center h-[24px]">Nombre completo</FieldLabel>
-                                <Input value={form.nombre}
-                                    onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                                />
-                            </Field>
+              {/* Hotel */}
+              <Field>
+                <FieldLabel>Hotel</FieldLabel>
+                <Select value={form.hotel} onValueChange={v => setForm({ ...form, hotel: v })}>
+                  <SelectTrigger className="h-11 rounded-lg!">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {hoteles.map(h => (
+                      <SelectItem key={h.id_hotel} value={String(h.id_hotel)}>{h.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
 
-                            <Field>
-                                <FieldLabel>Email</FieldLabel>
-                                <Input type="email"
-                                    value={form.email}
-                                    onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                            </Field>
+              {/* Zona */}
+              <Field>
+                <FieldLabel>Zona de destino</FieldLabel>
+                <Select value={form.zona} onValueChange={v => setForm({ ...form, zona: v })}>
+                  <SelectTrigger className="h-11 rounded-lg!">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {zonas.map(z => (
+                      <SelectItem key={z.id_zona} value={String(z.id_zona)}>{z.descripcion}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
 
-                            <Field>
-                                <FieldLabel>Teléfono</FieldLabel>
-                                <Input type="tel"
-                                    value={form.telefono}
-                                    onChange={(e) => setForm({ ...form, telefono: e.target.value })} />
-                            </Field>
-                        </FieldGroup>
-                    )}
-                    <div className="w-full flex justify-end mt-8! gap-2">
-                        <Button variant="outline" className="!rounded-lg" onClick={onCancel}>
-                            Cancelar
-                        </Button>
-                        <Button
-                            className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]"
-                            onClick={enviarReserva}
-                        >
-                            Confirmar Reserva
-                        </Button>
-                    </div>
-                </CardContent>
-            </div>
-        </Card>
-    );
+              {/* Vehículo */}
+              <Field>
+                <FieldLabel>Vehículo</FieldLabel>
+                <Select value={form.vehiculo} onValueChange={v => setForm({ ...form, vehiculo: v })}>
+                  <SelectTrigger className="h-11 rounded-lg!">
+                    <SelectValue placeholder="" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehiculos.map(v => (
+                      <SelectItem key={v.id_vehiculo} value={String(v.id_vehiculo)}>{v.Descripción}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+
+              {/* Número de viajeros */}
+              <Field>
+                <FieldLabel>Número de viajeros</FieldLabel>
+                <Input type="number" min="1" value={form.viajeros} onChange={e => setForm({ ...form, viajeros: Math.max(1, Number(e.target.value)) })} />
+              </Field>
+
+              {/* Nombre */}
+              <Field>
+                <FieldLabel>Nombre completo</FieldLabel>
+                <Input value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
+              </Field>
+
+              {/* Email */}
+              <Field>
+                <FieldLabel>Email</FieldLabel>
+                <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+              </Field>
+
+              {/* Teléfono */}
+              <Field>
+                <FieldLabel>Teléfono</FieldLabel>
+                <Input type="tel" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} />
+              </Field>
+
+            </FieldGroup>
+          )}
+
+          <div className="w-full flex justify-end mt-8! gap-2">
+            <Button variant="outline" className="!rounded-lg" onClick={onCancel}>Cancelar</Button>
+            <Button className="!rounded-lg bg-[var(--dark-slate-gray)] hover:!bg-[var(--ebony)] text-[var(--ivory)]" onClick={enviarReserva}>
+              Confirmar Reserva
+            </Button>
+          </div>
+        </CardContent>
+      </div>
+    </Card>
+  );
 }
+

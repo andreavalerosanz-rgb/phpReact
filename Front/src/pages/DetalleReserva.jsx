@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { DashboardLayout } from "@/components/dashboardLayout"
 import { useParams, useNavigate } from "react-router-dom"
 import { reservasEjemplo } from '../components/reservasEjemplo'
+import { apiGetReservasHotel } from "@/api"; // importar la nueva función
 
 import {
   PlaneLanding,
@@ -39,10 +40,66 @@ const DetalleReserva = () => {
   const hoy = new Date().toISOString().split("T")[0]
 
   useEffect(() => {
-    const r = reservasEjemplo.find(res => res.id === Number(id))
-    setReserva(r)
-    setInitialReserva(r)
-  }, [id])
+  const fetchReserva = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      // <- Aquí reemplazas la parte de fetch anterior
+      const hotelData = JSON.parse(localStorage.getItem("user"));
+      if (!hotelData?.id) {
+        toast.error("No se encontró el hotel logueado");
+        navigate("/login");
+        return;
+      }
+
+      // Traemos todas las reservas del hotel
+      const reservas = await apiGetReservasHotel(hotelData.id, token);
+
+      // Encontramos la reserva concreta según id de useParams
+      const r = reservas.find(res => res.id_reserva === Number(id));
+      if (!r) {
+        toast.error("Reserva no encontrada");
+        navigate(-1);
+        return;
+      }
+
+      // Normalizamos los datos para el componente
+      setReserva({
+        id: r.id_reserva,
+        tipo: mapTipoReserva(r.id_tipo_reserva),
+        fechaLlegada: r.fecha_entrada,
+        horaLlegada: r.hora_entrada,
+        vueloLlegada: r.numero_vuelo_entrada,
+        origen: r.origen_vuelo_entrada,
+        fechaVuelta: r.fecha_vuelo_salida,
+        horaVueloSalida: r.hora_vuelo_salida,
+        vueloSalida: r.numero_vuelo_salida,
+        aeropuertoSalida: r.origen_vuelo_salida,
+        hotelDestino: r.id_hotel,
+        pasajeros: {
+          viajeros: r.num_viajeros,
+          nombre: r.nombre_cliente,
+          email: r.email_cliente,
+          telefono: r.telefono_cliente,
+          vehiculoId: r.id_vehiculo
+        }
+      });
+
+      setInitialReserva(r);
+
+    } catch (err) {
+      console.error("Error cargando reserva:", err);
+      toast.error("No se pudo cargar la reserva");
+      navigate(-1);
+    }
+  };
+
+  fetchReserva();
+}, [id, navigate]);
 
   if (!reserva) return <DashboardLayout>Cargando...</DashboardLayout>
 

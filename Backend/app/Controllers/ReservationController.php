@@ -63,16 +63,28 @@ public function store() {
     if (!$emailCliente) $errors['email_cliente'] = 'email_cliente es requerido';
     elseif (!filter_var($emailCliente, FILTER_VALIDATE_EMAIL)) $errors['email_cliente'] = 'email_cliente no tiene un formato válido';
 
-    if (in_array($tipoTxt, ['IDA','IDA_VUELTA'], true)) {
-        foreach (['fecha_entrada','hora_entrada','numero_vuelo_entrada','origen_vuelo_entrada'] as $f) {
-            if (empty($in[$f])) $errors[$f] = "Campo $f requerido para $tipoTxt";
-        }
+        // Para VUELTA e IDA_VUELTA, permitimos null si el usuario no lo pone
+    if (in_array($tipoTxt, ['VUELTA','IDA_VUELTA'], true)) {
+        $fechaSalida = $in['fecha_vuelo_salida'] ?? null;
+        $horaSalida  = $in['hora_vuelo_salida'] ?? null;
+
+        // Si viene vacío string, lo convertimos a null
+        if ($fechaSalida === '') $fechaSalida = null;
+        if ($horaSalida  === '') $horaSalida  = null;
+    } else {
+        $fechaSalida = null;
+        $horaSalida  = null;
     }
     if (in_array($tipoTxt, ['VUELTA','IDA_VUELTA'], true)) {
-        foreach (['fecha_vuelo_salida','hora_vuelo_salida'] as $f) {
-            if (empty($in[$f])) $errors[$f] = "Campo $f requerido para $tipoTxt";
-        }
-    }
+    // Si no viene o viene vacío, lo dejamos en null
+    $fechaSalida = isset($in['fecha_vuelo_salida']) && trim($in['fecha_vuelo_salida']) !== '' 
+        ? $in['fecha_vuelo_salida'] 
+        : null;
+
+    $horaSalida = isset($in['hora_vuelo_salida']) && trim($in['hora_vuelo_salida']) !== '' 
+        ? $in['hora_vuelo_salida'] 
+        : null;
+    }   
 
     // regla 48h
     if ($role !== 'admin') {
@@ -105,7 +117,7 @@ public function store() {
     // ---------- FALLBACKS DATETIME ----------
     $fechaEntrada = $fechaEntrada ?: ($fechaSalida ?? date('Y-m-d'));
     $horaEntrada  = $horaEntrada  ?: '09:00:00';
-    $fechaSalida  = $fechaSalida  ?: $fechaEntrada;
+    $horaSalidaTS = ($fechaSalida && $horaSalida) ? "$fechaSalida $horaSalida" : null;
     $horaSalida   = $horaSalida   ?: '18:00:00';
 
     $horaSalidaTS = "$fechaSalida $horaSalida"; // DATETIME válido
@@ -124,12 +136,12 @@ public function store() {
         (int)$idHotel,
         (int)$idTipo,
         $emailCliente,
-        (int)$idDestino,
+        $idDestino,      // <--- id_destino, sin castear a int si quieres
         $fechaEntrada,
         $horaEntrada,
         $vueloEntrada,
         $origenEntrada,
-        $horaSalidaTS,
+        $horaSalidaTS,   // DATETIME o null
         (int)$pax,
         (int)$idVehiculo
     ];

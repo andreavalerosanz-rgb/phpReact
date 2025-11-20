@@ -62,6 +62,11 @@ export async function apiCrearReserva(data, token) {
   return request("POST", "/api/reservas", data, token);
 }
 
+// api.js
+export async function apiGetReservasHotel(hotelId, token) {
+  return request("GET", `/api/hotel/${hotelId}/reservas`, null, token);
+}
+
 // =============================
 // DASHBOARDS
 // =============================

@@ -16,11 +16,23 @@ class HotelController extends Controller {
         return;
     }
 
+    // Contar reservas
+    $st2 = DB::pdo()->prepare("SELECT COUNT(*) as total_reservas FROM transfer_reservas WHERE id_hotel = ?");
+    $st2->execute([(int)$id]);
+    $total_reservas = $st2->fetchColumn();
+
     $this->json([
         'hotel' => $hotel,
-        // puedes añadir más info del dashboard aquí
+        'total_reservas' => (int)$total_reservas
     ]);
 }
+
+public function listarHoteles() {
+    $st = DB::pdo()->query("SELECT * FROM transfer_hoteles ORDER BY id_hotel ASC");
+    $hoteles = $st->fetchAll();
+    $this->json($hoteles);
+}
+
 
     // Listar reservas del hotel
     public function reservas($hotelId){

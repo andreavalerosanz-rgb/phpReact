@@ -3,11 +3,19 @@ import { Button } from "@/components/ui/button"
 import { IconEdit, IconX, IconClockHour4 } from "@tabler/icons-react"
 
 const ReservaItem = ({ reserva, onEdit, onCancel }) => {
-  const calcularHorasRestantes = (fecha) =>
-    (new Date(fecha).getTime() - Date.now()) / (1000 * 60 * 60)
+  // Calcula horas restantes hasta la fecha de entrada
+  const calcularHorasRestantes = (fechaEntrada) =>
+    (new Date(fechaEntrada).getTime() - Date.now()) / (1000 * 60 * 60)
 
-  const horasRestantes = calcularHorasRestantes(reserva.fecha)
+  const horasRestantes = calcularHorasRestantes(reserva.fecha_entrada)
   const bloqueada = horasRestantes < 48
+
+  // Puedes mapear id_tipo_reserva a un nombre si quieres
+  const tipoReservaMap = {
+    1: "Vuelo",
+    2: "Tren",
+    3: "Vehículo",
+  }
 
   return (
     <tr
@@ -15,11 +23,16 @@ const ReservaItem = ({ reserva, onEdit, onCancel }) => {
         bloqueada ? "bg-gray-100 text-gray-500" : "bg-white hover:bg-gray-50"
       }`}
     >
-      <td className="px-4 py-3 font-medium">{reserva.servicio}</td>
-      <td className="px-4 py-3">
-        {new Date(reserva.fecha).toLocaleString()}
+      <td className="px-4 py-3 font-medium">
+        {tipoReservaMap[reserva.id_tipo_reserva] || "Reserva"}
       </td>
-      <td className="px-4 py-3">{reserva.estado}</td>
+      <td className="px-4 py-3">
+        {new Date(reserva.fecha_entrada + "T" + reserva.hora_entrada).toLocaleString()}
+      </td>
+      <td className="px-4 py-3">
+        {/* Estado provisional: siempre "Pendiente" por ahora */}
+        Pendiente
+      </td>
       <td className="px-4 py-3">
         {bloqueada ? (
           <span className="flex items-center text-xs text-red-500 gap-1 justify-center">

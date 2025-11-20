@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiGetUserDashboard } from "@/api";
 import { DashboardLayout } from "@/components/dashboardLayout";
-import { apiGetUserDashboard } from "../api.js";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
 
-  const [currentUser, setCurrentUser] = useState({ name: "Usuario", type: "user", id: null });
+  const [currentUser, setCurrentUser] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
@@ -23,11 +23,16 @@ const UserDashboard = () => {
         setCurrentUser(storedUser);
 
         const data = await apiGetUserDashboard(storedUser.id, token);
-        setDashboardData(data);
+
+        // Normalizar datos según lo que devuelve el backend
+        setDashboardData({
+          reservas: data.reservas_count ?? 0,
+          lista_reservas: data.reservas ?? [],
+        });
 
       } catch (err) {
-        console.error("Error cargando dashboard del usuario:", err);
-        setDashboardData({ reservas: 0 });
+        console.error("Error cargando dashboard:", err);
+        setDashboardData({ reservas: 0, lista_reservas: [] });
       }
     };
 

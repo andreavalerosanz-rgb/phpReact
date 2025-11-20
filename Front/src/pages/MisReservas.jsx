@@ -1,31 +1,45 @@
-import React, { useEffect, useState } from "react"
-import { DashboardLayout } from "@/components/dashboardLayout"
-import ReservaItem from "@/components/ReservaItem"
-import { ToastContainer, toast } from "react-toastify"
-import { useNavigate } from "react-router-dom"
-import "react-toastify/dist/ReactToastify.css"
-
+import React, { useEffect, useState } from "react";
+import { DashboardLayout } from "@/components/dashboardLayout";
+import ReservaItem from "@/components/ReservaItem";
+import { ToastContainer, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import "react-toastify/dist/ReactToastify.css";
 
 const MisReservas = () => {
-  const [reservas, setReservas] = useState([])
-  const navigate = useNavigate()
-  const [currentUser] = useState(
-    localStorage.getItem("userData")
-      ? JSON.parse(localStorage.getItem("userData"))
-      : { name: "John Doe", email: "john@example.com" }
-  )
+  const [reservas, setReservas] = useState([]);
+  const navigate = useNavigate();
+
+  const currentUser = localStorage.getItem("user")
+  ? JSON.parse(localStorage.getItem("user"))
+  : null;
 
   useEffect(() => {
-      fetch("localhost:8080/api/reservas/user/"+currentUser.id)
-      .then(response => response.json())
-      .then(data => setReservas(data))
-      .catch(error => console.error("Error fetching reservas:", error))
-    /*setReservas([
-      { id: 1, fecha: "2025-11-20T14:00:00", servicio: "Sala A", estado: "Confirmada" },
-      { id: 2, fecha: "2025-11-14T09:00:00", servicio: "Sala B", estado: "Pendiente" },
-      { id: 3, fecha: "2025-11-25T16:00:00", servicio: "Sala C", estado: "Confirmada" },
-    ])*/
-  }, [])
+    if (!currentUser) {
+      console.error("Usuario no identificado");
+      return;
+    }
+
+    // Fetch adaptado al endpoint correcto
+    fetch(`http://localhost:8080/api/hotel/${currentUser.id}/reservas`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al obtener reservas");
+        console.log("Fetch status:", res.status);
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Datos recibidos:", data);
+        // Normalizamos los datos para ReservaItem
+        const reservasNormalizadas = data.map((r) => ({
+          ...r,
+          servicio: r.localizador, // puedes mapear id_tipo_reserva a nombre de servicio si quieres
+          fecha: r.fecha_entrada + "T" + r.hora_entrada,
+          estado: "Pendiente",
+          id: r.id_reserva,
+        }));
+        setReservas(reservasNormalizadas);
+      })
+      .catch((err) => console.error("Error fetching reservas:", err));
+  }, [currentUser]);
 
   const handleEdit = (reserva) => {
     toast.info(`Abriendo reserva #${reserva.id} (${reserva.servicio})...`, {
@@ -37,8 +51,8 @@ const MisReservas = () => {
       draggable: true,
       theme: "light",
       onClose: () => navigate(`/reservas/${reserva.id}`), // Redirección tras cerrar el toast
-    })
-  }
+    });
+  };
 
   const handleCancel = (reserva) => {
     toast.error(`Reserva #${reserva.id} (${reserva.servicio}) cancelada.`, {
@@ -49,8 +63,8 @@ const MisReservas = () => {
       pauseOnHover: true,
       draggable: true,
       theme: "colored",
-    })
-  }
+    });
+  };
 
   return (
     <DashboardLayout currentUser={currentUser}>
@@ -77,10 +91,9 @@ const MisReservas = () => {
         </table>
       </div>
 
-      {/* Contenedor global de Toasts */}
       <ToastContainer />
     </DashboardLayout>
-  )
-}
+  );
+};
 
-export default MisReservas
+export default MisReservas;

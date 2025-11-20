@@ -1,34 +1,40 @@
 import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboardLayout";
 import { useParams, useNavigate } from "react-router-dom";
-import { apiGetHotelDashboard } from "../api.js";
+import { apiGetHotelDashboard } from "@/api";
 
 const HotelDashboard = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [currentUser, setCurrentUser] = useState(
-    JSON.parse(localStorage.getItem("userData")) || { name: "Hotel", type: "hotel", id }
-  );
+  const [currentUser, setCurrentUser] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
+        const storedUser = JSON.parse(localStorage.getItem("user"));
         const token = localStorage.getItem("token");
-        if (!token) {
+
+        if (!token || !storedUser) {
           navigate("/login");
           return;
         }
 
-        const data = await apiGetHotelDashboard(id, token);
-        setDashboardData(data);
+        setCurrentUser({ ...storedUser, type: "hotel" });
 
+        const data = await apiGetHotelDashboard(id, token);
+        console.log("DATA DEL BACKEND:", data);
+
+        setDashboardData({
+          reservas: data.total_reservas ?? 0
+        });
       } catch (err) {
         console.error("Error cargando dashboard del hotel:", err);
-        setDashboardData({ reservas: 0 });
+        setDashboardData({ reservas: 0, lista_reservas: [] });
       }
     };
+
     fetchDashboard();
   }, [id, navigate]);
 

@@ -8,18 +8,26 @@ const AdminDashboard = () => {
   );
   const [dashboardData, setDashboardData] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const data = await apiGetAdminDashboard(); // fetch a tu API de admin
-        setDashboardData(data);
-      } catch (err) {
-        console.error("Error cargando dashboard de admin:", err);
-        setDashboardData({ reservasTotales: 0, viajerosTotales: 0, hotelesRegistrados: 0 });
-      }
-    };
-    fetchData();
-  }, []);
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const data = await apiGetAdminDashboard();
+      setDashboardData({
+        reservasTotales: data.reservas ?? 0,
+        viajerosTotales: data.viajeros ?? 0,
+        hotelesRegistrados: data.hoteles ?? 0,
+      });
+    } catch (err) {
+      console.error("Error cargando dashboard de admin:", err);
+      setDashboardData({
+        reservasTotales: 0,
+        viajerosTotales: 0,
+        hotelesRegistrados: 0,
+      });
+    }
+  };
+  fetchData();
+}, []);
 
   if (!dashboardData) return <p>Cargando datos del admin...</p>;
 

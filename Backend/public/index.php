@@ -71,6 +71,8 @@ $router->get('/api/hotel/{id}/reservas', 'HotelController@reservas'); // reserva
 $router->get('/api/hotel/{id}/calendario', 'CalendarController@hotelCalendar'); // Calendario Hotel - Sin filtaros día/semana/mes
 $router->get('/api/hotel/{id}/calendario-view', 'CalendarController@hotelCalendarView'); // Celendario Hotel - Con filtros día/semana/mes
 $router->get('/api/hotel/{id}/dashboard', 'HotelController@dashboard'); // dashboard del hotel (por id)
+$router->get('/api/hoteles', 'HotelController@listarHoteles');
+
 
 // ----------------- USER ------------------
 $router->get('/api/user/{id}/dashboard', 'UserController@dashboard');

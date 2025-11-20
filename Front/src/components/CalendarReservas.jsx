@@ -43,40 +43,42 @@ export function CalendarReservas() {
     reservas.filter((e) => isSameDay(new Date(e.fecha), date))
 
   useEffect(() => {
-    const cargarReservas = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/calendar/events")
+  const cargarReservas = async () => {
+    try {
+      const currentUser = localStorage.getItem("user")
+        ? JSON.parse(localStorage.getItem("user"))
+        : null;
 
-        if (!response.ok) throw new Error("Error al obtener reservas")
-        const data = await response.json()
+      const response = await fetch("http://localhost:8080/api/hotel/2/reservas"); // o dinámico con currentUser.id
+      if (!response.ok) throw new Error("Error al obtener reservas");
+      const data = await response.json();
 
-        console.log("RESERVAS RAW:", data)
+      // Filtrar solo reservas del hotel actual
+      const reservasFiltradas = data.filter(ev => ev.id_hotel === currentUser.id);
 
-        // Adaptar backend → formato frontend
-        const reservasAdaptadas = data.map(ev => ({
-          id: ev.id,
-          fecha: ev.start,
-          servicio: ev.localizador,
-          tipo:
-            ev.color === "#4caf50"
-              ? "aeropuerto-hotel"
-              : ev.color === "#1976d2"
-                ? "hotel-aeropuerto"
-                : "ida-vuelta",
-        }))
+      // Adaptar reservas
+      const reservasAdaptadas = reservasFiltradas.map(ev => ({
+        id: ev.id_reserva,
+        fecha: ev.fecha_entrada,
+        servicio: ev.localizador,
+        tipo:
+          ev.id_tipo_reserva === 1
+            ? "aeropuerto-hotel"
+            : ev.id_tipo_reserva === 2
+              ? "hotel-aeropuerto"
+              : "ida-vuelta",
+      }));
 
-        console.log("RESERVAS ADAPTADAS:", reservasAdaptadas)
-
-        setReservas(reservasAdaptadas)
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
+      setReservas(reservasAdaptadas);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    cargarReservas()
-  }, [])
+  cargarReservas();
+}, []);
 
   const [view, setView] = useState("week") // month | week | day
   const [currentDate, setCurrentDate] = useState(new Date())
