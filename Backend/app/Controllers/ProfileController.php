@@ -134,64 +134,85 @@ class ProfileController extends Controller {
      * Actualizar perfil según rol
      */
     public function update() 
-    {
-        $user = $this->authUser();
-        if (!$user || !isset($user['userId'])) {
-            return $this->json(['error'=>'No autorizado'], 401);
-        }
-
-        $in = $this->body();
-        $set = [];
-        $params = [];
-
-        // Campos válidos
-        if (isset($in['nombre'])) {
-            $set[] = "nombre = ?";
-            $params[] = $in['nombre'];
-        }
-
-        if (isset($in['password'])) {
-            $set[] = "password = ?";
-            $params[] = $in['password'];
-        }
-
-        if (isset($in['email'])) {
-            $col = match($user['role']) {
-                'user' => 'email_viajero',
-                'hotel' => 'email_hotel',
-                'admin' => 'email_admin',
-            };
-            $set[] = "$col = ?";
-            $params[] = $in['email'];
-        }
-
-        if (!$set) {
-            return $this->json(['error'=>'Nada que actualizar'], 400);
-        }
-
-        $table = match($user['role']) {
-            'user' => 'transfer_viajeros',
-            'hotel' => 'transfer_hoteles',
-            'admin' => 'transfer_admin',
-        };
-
-        $idCol = match($user['role']) {
-            'user' => 'id_viajero',
-            'hotel' => 'id_hotel',
-            'admin' => 'id_admin',
-        };
-
-        $params[] = $user['userId'];
-
-        $sql = "UPDATE $table SET ".implode(',', $set)." WHERE $idCol = ?";
-
-        try {
-            $st = DB::pdo()->prepare($sql);
-            $st->execute($params);
-        } catch (\PDOException $e) {
-            return $this->json(['error'=>'Error al actualizar'],500);
-        }
-
-        return $this->json(['ok'=>true]);
+{
+    $user = $this->authUser();
+    if (!$user || !isset($user['userId'])) {
+        return $this->json(['error'=>'No autorizado'], 401);
     }
+
+    $in = $this->body();
+    $set = [];
+    $params = [];
+
+    switch ($user['role']) {
+
+        case 'user':
+            $fields = [
+                'nombre'        => 'nombre',
+                'apellido1'     => 'apellido1',
+                'apellido2'     => 'apellido2',
+                'direccion'     => 'direccion',
+                'codigoPostal'  => 'codigoPostal',
+                'ciudad'        => 'ciudad',
+                'pais'          => 'pais',
+                'email'         => 'email_viajero',
+                'password'      => 'password'
+            ];
+            $table = 'transfer_viajeros';
+            $idCol = 'id_viajero';
+            break;
+
+
+        case 'hotel':
+            $fields = [
+                'nombre'        => 'nombre',
+                'email_hotel'   => 'email_hotel',
+                'id_zona'       => 'id_zona',
+                'Comision'      => 'Comision',
+                'password'      => 'password'
+            ];
+            $table = 'transfer_hoteles';
+            $idCol = 'id_hotel';
+            break;
+
+
+        case 'admin':
+            $fields = [
+                'nombre'       => 'nombre',
+                'email_admin'  => 'email_admin',
+                'password'     => 'password'
+            ];
+            $table = 'transfer_admin';
+            $idCol = 'id_admin';
+            break;
+
+
+        default:
+            return $this->json(['error'=>'Rol no soportado'],400);
+    }
+
+    // aplicar valores enviados
+    foreach ($fields as $inputKey => $dbColumn) {
+        if (isset($in[$inputKey])) {
+            $set[] = "$dbColumn = ?";
+            $params[] = $in[$inputKey];
+        }
+    }
+
+    if (!$set) {
+        return $this->json(['error'=>'Nada que actualizar'], 400);
+    }
+
+    $params[] = $user['userId'];
+
+    $sql = "UPDATE $table SET ".implode(', ', $set)." WHERE $idCol = ?";
+    try {
+        $st = DB::pdo()->prepare($sql);
+        $st->execute($params);
+    } catch (\PDOException $e) {
+        return $this->json(['error'=>'Error al actualizar'], 500);
+    }
+
+    return $this->json(['ok'=>true]);
+}
 }

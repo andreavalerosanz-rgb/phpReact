@@ -117,17 +117,35 @@ const MisReservas = () => {
     })
   }
 
-  const handleCancel = (reserva) => {
-    toast.error(`Reserva #${reserva.id} (${reserva.servicio}) cancelada.`, {
-      position: "top-right",
-      autoClose: 2500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      theme: "colored",
-    })
-  }
+  const handleCancel = async (reserva) => {
+    const confirmDelete = window.confirm(
+      `¿Seguro que quieres cancelar la reserva ${reserva.localizador}?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/reservas/${reserva.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: currentUser.type || "user" })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(`Error al cancelar: ${data.message || data.error}`);
+        return;
+      }
+
+      setReservas(prev => prev.filter(r => r.id !== reserva.id));
+
+      toast.success(`Reserva ${reserva.localizador} eliminada.`);
+    } catch (error) {
+      console.error("Error en eliminación:", error);
+      toast.error("Error inesperado al cancelar.");
+    }
+  };
+
 
   return (
     <DashboardLayout currentUser={currentUser}>

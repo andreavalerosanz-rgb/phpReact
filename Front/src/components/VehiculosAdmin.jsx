@@ -10,110 +10,114 @@ export default function VehiculosAdmin() {
     const [showEditModal, setShowEditModal] = useState(false)
 
     const [nuevoVehiculo, setNuevoVehiculo] = useState({
-    Descripción: "",       // aquí va "marca" o descripción del vehículo
-    email_conductor: "",   // email del conductor
-    password: ""           // password del vehículo
+        descripcion: "",       // aquí va "marca" o descripción del vehículo
+        email_conductor: "",   // email del conductor
+        password: ""           // password del vehículo
     });
 
     const [vehiculoEditando, setVehiculoEditando] = useState(null)
 
+    const abrirEditarVehiculo = (vehiculo) => {
+        setVehiculoEditando(vehiculo)
+        setShowEditModal(true)
+    }
+
     useEffect(() => {
-    fetch("http://localhost:8080/api/vehiculos")
-    .then(res => res.json())
-    .then(data => {
-        // mapear campos a lo que espera tu frontend
-        const vehiculosMapped = data.map(v => ({
-            id_vehiculo: v.id_vehiculo,
-            Descripcion: v.descripcion, 
-            email_conductor: v.email_conductor,
-            password: v.password
-        }));
-        setVehiculos(vehiculosMapped);
-    })
-    .catch(err => console.error("Error cargando vehículos:", err));
-}, [])
+        fetch("http://localhost:8080/api/vehiculos")
+            .then(res => res.json())
+            .then(data => {
+                const vehiculosMapped = data.map(v => ({
+                    id_vehiculo: v.id_vehiculo,
+                    descripcion: v.Descripción,   // <-- AQUÍ EL ARREGLO
+                    email_conductor: v.email_conductor,
+                    password: v.password
+                }));
+                setVehiculos(vehiculosMapped);
+            })
+            .catch(err => console.error("Error cargando vehículos:", err));
+    }, [])
 
     const eliminarVehiculo = (id) => {
-    if (!confirm("¿Eliminar este vehículo?")) return;
+        if (!confirm("¿Eliminar este vehículo?")) return;
 
-    fetch(`http://localhost:8080/api/vehiculos/${id}`, {
-        method: "DELETE",
-    })
-    .then(() => {
-        setVehiculos(prev => prev.filter(v => v.id_vehiculo !== id));
-    })
-    .catch(err => console.error("Error eliminando vehículo:", err));
+        fetch(`http://localhost:8080/api/vehiculos/${id}`, {
+            method: "DELETE",
+        })
+            .then(() => {
+                setVehiculos(prev => prev.filter(v => v.id_vehiculo !== id));
+            })
+            .catch(err => console.error("Error eliminando vehículo:", err));
     }
 
     // -----------------------------
     // AÑADIR VEHÍCULO
     // -----------------------------
     const guardarNuevoVehiculo = () => {
-    if (!nuevoVehiculo.Descripcion || !nuevoVehiculo.email_conductor || !nuevoVehiculo.password) {
-        alert("Debes completar todos los campos");
-        return;
+        if (!nuevoVehiculo.descripcion || !nuevoVehiculo.email_conductor || !nuevoVehiculo.password) {
+            alert("Debes completar todos los campos");
+            return;
+        }
+
+        // Preparamos objeto con los nombres que espera la API
+        const nuevoVehiculoAPI = {
+            descripcion: nuevoVehiculo.descripcion,
+            email_conductor: nuevoVehiculo.email_conductor,
+            password: nuevoVehiculo.password
+        };
+
+        fetch(`http://localhost:8080/api/vehiculos`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(nuevoVehiculoAPI)
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Error creando vehículo");
+                return res.json();
+            })
+            .then(data => {
+                // Añadimos el nuevo vehículo a la lista
+                setVehiculos(prev => [...prev, {
+                    id_vehiculo: data.id_vehiculo,
+                    descripcion: data.descripcion,
+                    email_conductor: data.email_conductor,
+                    password: data.password
+                }]);
+                // Limpiamos formulario
+                setNuevoVehiculo({ descripcion: "", email_conductor: "", password: "" });
+                setShowAddModal(false);
+            })
+            .catch(err => console.error("Error creando vehículo:", err));
     }
-
-    // Preparamos objeto con los nombres que espera la API
-    const nuevoVehiculoAPI = {
-        descripcion: nuevoVehiculo.Descripcion,
-        email_conductor: nuevoVehiculo.email_conductor,
-        password: nuevoVehiculo.password
-    };
-
-    fetch(`http://localhost:8080/api/vehiculos`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevoVehiculoAPI)
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Error creando vehículo");
-        return res.json();
-    })
-    .then(data => {
-        // Añadimos el nuevo vehículo a la lista
-        setVehiculos(prev => [...prev, {
-            id_vehiculo: data.id_vehiculo,
-            descripcion: data.descripcion,
-            email_conductor: data.email_conductor,
-            password: data.password
-        }]);
-        // Limpiamos formulario
-        setNuevoVehiculo({ Descripcion: "", email_conductor: "", password: "" });
-        setShowAddModal(false);
-    })
-    .catch(err => console.error("Error creando vehículo:", err));
-}
 
     // -----------------------------
     // EDITAR VEHÍCULO
     // -----------------------------
     const guardarCambiosVehiculo = () => {
-    // Objeto con los campos que la API espera
-    const cambiosVehiculoAPI = {
-        descripcion: vehiculoEditando.Descripcion,
-        email_conductor: vehiculoEditando.email_conductor,
-        password: vehiculoEditando.password
-    };
+        // Objeto con los campos que la API espera
+        const cambiosVehiculoAPI = {
+            descripcion: vehiculoEditando.descripcion,
+            email_conductor: vehiculoEditando.email_conductor,
+            password: vehiculoEditando.password
+        };
 
-    fetch(`http://localhost:8080/api/vehiculos/${vehiculoEditando.id_vehiculo}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cambiosVehiculoAPI)
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Error actualizando vehículo");
-        return res.json();
-    })
-    .then(updated => {
-        // Actualizamos el estado con los cambios
-        setVehiculos(prev =>
-            prev.map(v => v.id_vehiculo === updated.id_vehiculo ? updated : v)
-        );
-        setShowEditModal(false);
-    })
-    .catch(err => console.error("Error actualizando vehículo:", err));
-}
+        fetch(`http://localhost:8080/api/vehiculos/${vehiculoEditando.id_vehiculo}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(cambiosVehiculoAPI)
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Error actualizando vehículo");
+                return res.json();
+            })
+            .then(updated => {
+                // Actualizamos el estado con los cambios
+                setVehiculos(prev =>
+                    prev.map(v => v.id_vehiculo === updated.id_vehiculo ? updated : v)
+                );
+                setShowEditModal(false);
+            })
+            .catch(err => console.error("Error actualizando vehículo:", err));
+    }
 
     return (
         <div className="!p-8">
@@ -145,7 +149,7 @@ export default function VehiculosAdmin() {
                             {vehiculos.map((v) => (
                                 <tr key={v.id} className="border-b hover:bg-gray-50">
                                     <td className="p-3">{v.id_vehiculo}</td>
-                                    <td className="p-3">{v.descripción}</td>
+                                    <td className="p-3">{v.descripcion}</td>
                                     <td className="p-3">{v.email_conductor}</td>
                                     <td className="p-3">{v.password}</td>
                                     <td className="p-3 flex justify-center gap-3">
@@ -157,7 +161,7 @@ export default function VehiculosAdmin() {
                                         </button>
                                         <button
                                             className="text-red-600 hover:text-red-800"
-                                            onClick={() => eliminarVehiculo(v.id)}
+                                            onClick={() => eliminarVehiculo(v.id_vehiculo)}
                                         >
                                             <IconTrash size={20} />
                                         </button>
@@ -195,8 +199,8 @@ export default function VehiculosAdmin() {
                                 type="text"
                                 placeholder="Descripción"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={nuevoVehiculo.descripción}
-                                onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, Descripción: e.target.value })}
+                                value={nuevoVehiculo.descripcion}
+                                onChange={e => setNuevoVehiculo({ ...nuevoVehiculo, descripcion: e.target.value })}
                             />
 
                             <input
@@ -253,9 +257,9 @@ export default function VehiculosAdmin() {
                             <input
                                 type="text"
                                 className="w-full border rounded-lg px-3 py-2"
-                                value={vehiculoEditando.descripción}
+                                value={vehiculoEditando.descripcion}
                                 onChange={(e) =>
-                                    setVehiculoEditando({ ...vehiculoEditando, descripción: e.target.value })
+                                    setVehiculoEditando({ ...vehiculoEditando, descripcion: e.target.value })
                                 }
                             />
 

@@ -104,7 +104,8 @@ export default function DetalleReservaCalendarComp({ id }) {
               <h3 className="font-semibold">Ida</h3>
               <p><strong>Fecha:</strong> {formatFecha(fechaIda)}</p>
               <p><strong>Hora:</strong> {formatHora(horaIda)}</p>
-              <p><strong>Origen:</strong> {reserva.origen_vuelo_entrada}</p>
+              <p><strong>Número vuelo:</strong> {reserva.numero_vuelo_entrada}</p>
+              <p><strong>Origen vuelo:</strong> {reserva.origen_vuelo_entrada}</p>
               <p><strong>Hotel:</strong> {reserva.hotel_nombre}</p>
               <p><strong>Vehículo:</strong> {reserva.vehiculo_descripcion}</p>
             </div>
@@ -112,12 +113,17 @@ export default function DetalleReservaCalendarComp({ id }) {
             {/* VUELTA */}
             <div className="p-4 border rounded-lg bg-white space-y-1">
               <h3 className="font-semibold">Vuelta</h3>
-              <p><strong>Fecha:</strong> {formatFecha(fechaIda)}</p>
-              <p><strong>Hora:</strong> {formatHora(horaIda)}</p>
-              <p><strong>Origen:</strong> {destino?.nombre || reserva.id_destino}</p>
+
+              <p><strong>Fecha:</strong> {formatFecha(reserva.fecha_vuelo_salida)}</p>
+              <p><strong>Hora:</strong> {formatHora(reserva.hora_vuelo_salida)}</p>
+
+              <p><strong>Número vuelo:</strong> {reserva.numero_vuelo_salida}</p>
+              <p><strong>Origen vuelo:</strong> {reserva.origen_vuelo_salida}</p>
+
               <p><strong>Hotel:</strong> {reserva.hotel_nombre}</p>
               <p><strong>Vehículo:</strong> {reserva.vehiculo_descripcion}</p>
             </div>
+
 
             {/* PASAJEROS */}
             <div className="p-4 border rounded-lg bg-white space-y-1">
@@ -129,15 +135,32 @@ export default function DetalleReservaCalendarComp({ id }) {
           </div>
         ) : (
           <>
-            {/* SOLO IDA */}
+            {/* SOLO IDA o SOLO VUELTA */}
             <div className="p-4 border rounded-lg bg-white space-y-1">
               <h3 className="font-semibold mb-4">Información del traslado</h3>
-              <p><strong>Fecha:</strong> {formatFecha(fechaIda)}</p>
-              <p><strong>Hora:</strong> {formatHora(horaIda)}</p>
-              <p><strong>Origen:</strong> {reserva.origen_vuelo_entrada}</p>
+
+              {tipo === 1 && (
+                <>
+                  <p><strong>Fecha:</strong> {formatFecha(reserva.fecha_entrada)}</p>
+                  <p><strong>Hora:</strong> {formatHora(reserva.hora_entrada)}</p>
+                  <p><strong>Número vuelo:</strong> {reserva.numero_vuelo_entrada}</p>
+                  <p><strong>Origen vuelo:</strong> {reserva.origen_vuelo_entrada}</p>
+                </>
+              )}
+
+              {tipo === 2 && (
+                <>
+                  <p><strong>Fecha:</strong> {formatFecha(reserva.fecha_vuelo_salida)}</p>
+                  <p><strong>Hora:</strong> {formatHora(reserva.hora_vuelo_salida)}</p>
+                  <p><strong>Número vuelo:</strong> {reserva.numero_vuelo_salida}</p>
+                  <p><strong>Origen vuelo:</strong> {reserva.origen_vuelo_salida}</p>
+                </>
+              )}
+
               <p><strong>Hotel:</strong> {reserva.hotel_nombre}</p>
               <p><strong>Vehículo:</strong> {reserva.vehiculo_descripcion}</p>
             </div>
+
 
             {/* PASAJEROS */}
             <div className="p-4 border rounded-lg bg-white space-y-1">

@@ -38,7 +38,7 @@ const Hero = () => {
           <div className="col-lg-6 text-center">
             <div className="p-4 fade-in">
               <img 
-                src="/avion.png" 
+                src="/hero-illustration.png" 
                 alt="Traslado al aeropuerto" 
                 className="img-fluid rounded"
               />
